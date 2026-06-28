@@ -1147,10 +1147,9 @@ const RSVP_ENDPOINT = 'https://script.google.com/macros/s/AKfycbyzvZDRJUXMb9Sfvq
 // ============================================================
 // DATOS DE INVITADOS
 // Se cargan automáticamente desde invitados.json en GitHub
-// No editar manualmente — se actualiza desde Google Sheets
 // ============================================================
 const INVITADOS_JSON_URL =
-  'https://raw.githubusercontent.com/Tempest9805/Invitaciones_boda/main/invitados.json';
+  'https://api.github.com/repos/Tempest9805/Invitaciones_boda/contents/invitados.json';
 
 // ============================================================
 // ESTADO
@@ -1173,11 +1172,13 @@ window.addEventListener('DOMContentLoaded', async () => {
 });
 
 // ============================================================
-// CARGAR JSON DESDE GITHUB
+// CARGAR JSON DESDE GITHUB API (evita CORS de raw)
 // ============================================================
 async function loadInvitados() {
   try {
-    const res  = await fetch(INVITADOS_JSON_URL + '?t=' + Date.now());
+    const res  = await fetch(INVITADOS_JSON_URL, {
+      headers: { 'Accept': 'application/vnd.github.v3.raw' }
+    });
     INVITADOS  = await res.json();
   } catch (err) {
     console.warn('No se pudo cargar invitados.json:', err);
