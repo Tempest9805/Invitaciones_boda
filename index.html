@@ -1142,53 +1142,63 @@ const WEDDING_DATE = new Date('2026-03-13T10:00:00');
 
 // URL de tu Google Apps Script Web App para recibir RSVPs
 // Instrucciones al final del archivo
-const RSVP_ENDPOINT = 'https://script.google.com/macros/s/AKfycbwPLMPlAEYFzkcMuHwVkspXm0z4xUPQoGm77iv97-nefbLg5_JOloKhj8YTbQ0GyDEH/exec';
+const RSVP_ENDPOINT = 'https://script.google.com/macros/s/AKfycbxQZa1ZQ6YQ_w_LWlEPFo4Bq-1MpgR3avyUYAue4C69jxhIGrE_48kU2RF_GfvXB8Fy/exec';
 
 // ============================================================
 // DATOS DE INVITADOS
-// Exporta este JSON desde tu Google Sheet
-// Estructura: { "id": { nombre, acompanantes } }
+// Se cargan automáticamente desde invitados.json en GitHub
+// No editar manualmente — se actualiza desde Google Sheets
 // ============================================================
-const INVITADOS = {
-  // Ejemplo — reemplazar con tu JSON exportado de Sheets
-  "001boda26": { "nombre": "Jose Daniel Chaves Vargas", "acompanantes": 3 },
-  "demo":      { "nombre": "Invitado Demo",      "acompanantes": 2 }
-};
+const INVITADOS_JSON_URL =
+  'https://raw.githubusercontent.com/Tempest9805/Invitaciones_boda/main/invitados.json';
 
 // ============================================================
 // ESTADO
 // ============================================================
-let currentGuest = null;
-let audioStarted = false;
-let isMuted = false;
-const audio = document.getElementById('bg-audio');
-const musicBtn = document.getElementById('music-btn');
+let INVITADOS     = {};
+let currentGuest  = null;
+let audioStarted  = false;
+let isMuted       = false;
+const audio       = document.getElementById('bg-audio');
+const musicBtn    = document.getElementById('music-btn');
 
 // ============================================================
 // INIT
 // ============================================================
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
+  await loadInvitados();
   loadGuest();
   startCountdown();
   initScrollReveal();
 });
 
 // ============================================================
+// CARGAR JSON DESDE GITHUB
+// ============================================================
+async function loadInvitados() {
+  try {
+    const res  = await fetch(INVITADOS_JSON_URL + '?t=' + Date.now());
+    INVITADOS  = await res.json();
+  } catch (err) {
+    console.warn('No se pudo cargar invitados.json:', err);
+    INVITADOS  = { "demo": { "nombre": "Invitado Demo", "acompanantes": 2 } };
+  }
+}
+
+// ============================================================
 // CARGAR INVITADO DESDE URL
 // ============================================================
 function loadGuest() {
   const params = new URLSearchParams(window.location.search);
-  const id = params.get('id');
-  const guest = id ? INVITADOS[id] : null;
+  const id     = params.get('id');
+  const guest  = id ? INVITADOS[id] : null;
 
   if (guest) {
     currentGuest = { id, ...guest };
-    // Sobre
     document.getElementById('guest-name-letter').textContent = guest.nombre;
     const slots = guest.acompanantes;
     document.getElementById('guest-slots-letter').textContent =
       slots > 0 ? `+ ${slots} acompañante${slots > 1 ? 's' : ''}` : 'Entrada personal';
-    // Form — nombre como texto, no input
     document.getElementById('rsvp-name-display').textContent = guest.nombre;
   } else {
     document.getElementById('guest-name-letter').textContent = 'Querido invitado';
