@@ -1,4 +1,14 @@
 {
-  "001boda26": { "nombre": "Jose Daniel Chaves Vargas", "acompanantes": 2 },
-  "demo":      { "nombre": "Invitado Demo", "acompanantes": 2 }
+  "001boda26": {
+    "nombre": "Jose Daniel Chaves Vargas",
+    "acompanantes": 3
+  },
+  "002boda26": {
+    "nombre": "Teresita Vargas Vazques",
+    "acompanantes": 5
+  },
+  "demo": {
+    "nombre": "Invitado Demo",
+    "acompanantes": 2
+  }
 }
