@@ -1005,9 +1005,6 @@ section { position: relative; }
     </div>
   </div>
   <p class="env-hint" id="env-hint">Toca el sobre para abrir</p>
-  <button class="env-open-btn" id="env-open-btn" onclick="finishEnvelope()">
-    Ver invitación →
-  </button>
 </div>
 
 <!-- ============================================================
@@ -1377,7 +1374,6 @@ function loadGuest() {
 // ENVELOPE ANIMATION — GSAP
 // ============================================================
 const envWrapper   = document.getElementById('env-wrapper');
-const envOpenBtn   = document.getElementById('env-open-btn');
 const envSeal      = document.getElementById('env-seal');
 const envFlap      = document.getElementById('env-flap');
 const envLetter    = document.getElementById('env-letter');
@@ -1418,13 +1414,23 @@ envWrapper.addEventListener('click', () => {
     duration: 0.75,
     ease: 'power2.out'
   }, '-=0.4')
-  // 6. Botón aparece
-  .to(envOpenBtn, {
-    opacity: 1,
-    visibility: 'visible',
-    duration: 0.4,
-    ease: 'power1.out'
-  });
+  // 6. Zoom de entrada al sobre y transición al landing
+  .to(envWrapper, {
+    scale: 1.35,
+    duration: 0.55,
+    ease: 'power2.in'
+  }, '+=0.15')
+  .to(document.getElementById('envelope-screen'), {
+    opacity: 0,
+    duration: 0.45,
+    ease: 'power2.inOut',
+    onComplete: () => {
+      document.getElementById('envelope-screen').classList.add('hidden');
+      const main = document.getElementById('main-content');
+      main.classList.add('visible');
+      gsap.fromTo(main, { opacity: 0 }, { opacity: 1, duration: 0.6, ease: 'power2.out' });
+    }
+  }, '-=0.2');
 });
 
 function finishEnvelope() {
