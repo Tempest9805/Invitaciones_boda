@@ -70,142 +70,227 @@ section { position: relative; }
   position: fixed;
   inset: 0;
   z-index: 900;
-  background: var(--olive-dark);
+  background: radial-gradient(ellipse at 40% 35%, #4a5828 0%, #3A4225 45%, #2a3018 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   padding: 2rem;
-  transition: opacity 0.8s ease, visibility 0.8s ease;
+  transition: opacity 0.7s ease, visibility 0.7s ease;
 }
 #envelope-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+/* Scene — adds perspective for 3D flap */
+.env-scene {
+  perspective: 700px;
+  perspective-origin: 50% 40%;
+}
 
 /* Envelope wrapper */
 .env-wrapper {
   position: relative;
-  width: min(320px, 85vw);
+  width: min(340px, 88vw);
   cursor: pointer;
   user-select: none;
 }
 
-/* Envelope body */
+/* Envelope body container */
 .env-body {
   width: 100%;
   aspect-ratio: 3/2;
-  background: var(--cream);
-  border-radius: 4px 4px 8px 8px;
   position: relative;
-  box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+  filter: drop-shadow(0 24px 48px rgba(0,0,0,0.7)) drop-shadow(0 8px 16px rgba(0,0,0,0.4));
+}
+
+/* Back face (visible through open flap) */
+.env-back {
+  position: absolute;
+  inset: 0;
+  border-radius: 3px 3px 7px 7px;
+  background: linear-gradient(170deg, #d4c89a 0%, #c8bc8e 40%, #b8a97a 100%);
+  z-index: 0;
+}
+
+/* Front face with olive texture */
+.env-face {
+  position: absolute;
+  inset: 0;
+  border-radius: 3px 3px 7px 7px;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23n)' opacity='0.09'/%3E%3C/svg%3E"),
+    linear-gradient(165deg, #7a8c4e 0%, #5C6B3A 25%, #4d6030 55%, #3A4225 80%, #2e3520 100%);
+  z-index: 1;
   overflow: hidden;
 }
 
-/* Flap */
+/* Diagonal fold lines on face */
+.env-face::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to bottom right, rgba(255,255,255,0.04) 0%, transparent 48%),
+    linear-gradient(to bottom left, rgba(255,255,255,0.04) 0%, transparent 48%);
+}
+
+/* Left triangular fold */
+.env-fold-left {
+  position: absolute;
+  bottom: 0; left: 0;
+  width: 0; height: 0;
+  border-bottom: calc(var(--env-h, 150px) * 0.55) solid rgba(40,50,20,0.45);
+  border-right: 50% solid transparent;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Right triangular fold */
+.env-fold-right {
+  position: absolute;
+  bottom: 0; right: 0;
+  width: 0; height: 0;
+  border-bottom: calc(var(--env-h, 150px) * 0.55) solid rgba(40,50,20,0.45);
+  border-left: 50% solid transparent;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Bottom fold */
+.env-fold-bottom {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  width: 0; height: 0;
+  border-left: 50% solid transparent;
+  border-right: 50% solid transparent;
+  border-bottom: calc(var(--env-h, 150px) * 0.52) solid rgba(55,65,28,0.5);
+  z-index: 3;
+  pointer-events: none;
+}
+
+/* Top flap — animates with GSAP rotationX */
 .env-flap {
   position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 50%;
-  background: #E8E2D5;
-  clip-path: polygon(0 0, 50% 60%, 100% 0);
+  top: 0; left: 0; right: 0;
+  width: 0; height: 0;
+  border-left: 50% solid transparent;
+  border-right: 50% solid transparent;
+  border-top: 52% solid rgba(60,72,32,0.96);
   transform-origin: top center;
-  transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 2;
+  z-index: 5;
+  filter: brightness(0.82);
+  backface-visibility: hidden;
 }
-.env-wrapper.opening .env-flap {
-  transform: rotateX(-180deg);
+
+/* Flap texture overlay */
+.env-flap::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -50vw; right: -50vw;
+  height: 100%;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E");
+  pointer-events: none;
 }
 
 /* Wax seal */
 .env-seal {
   position: absolute;
-  top: 50%; left: 50%;
+  top: 46%; left: 50%;
   transform: translate(-50%, -50%);
-  width: 64px; height: 64px;
-  background: var(--olive-dark);
+  width: 72px; height: 72px;
   border-radius: 50%;
+  background:
+    radial-gradient(circle at 30% 28%, #f5df85 0%, #d4aa3a 28%, #9a7318 55%, #5e420a 78%, #2e1e02 100%);
+  box-shadow:
+    0 6px 20px rgba(0,0,0,0.65),
+    0 2px 6px rgba(0,0,0,0.45),
+    inset 0 3px 5px rgba(255,255,255,0.28),
+    inset 0 -3px 6px rgba(0,0,0,0.4),
+    inset 2px 0 4px rgba(255,230,100,0.12);
   display: flex; align-items: center; justify-content: center;
-  z-index: 3;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.3);
-  transition: opacity 0.3s;
-  flex-direction: column;
-  gap: 2px;
+  z-index: 6;
+  cursor: pointer;
 }
-.env-wrapper.opening .env-seal { opacity: 0; }
-.env-seal-initials {
-  font-family: var(--font-display);
-  color: var(--gold);
-  font-size: 1rem;
-  font-weight: 600;
-  line-height: 1;
+.env-seal::before {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border-radius: 50%;
+  border: 1px solid rgba(200,155,20,0.3);
+  pointer-events: none;
 }
-.env-seal-icon { color: var(--gold); font-size: 0.8rem; }
+.env-seal-svg {
+  width: 48px; height: 48px;
+  position: relative; z-index: 1;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.4));
+}
 
-/* Letter rising from envelope */
+/* Letter card that rises from envelope */
 .env-letter {
   position: absolute;
-  bottom: 0; left: 8%; right: 8%;
-  background: var(--cream);
-  border-radius: 4px;
-  padding: 1.2rem;
+  bottom: 4%; left: 8%; right: 8%;
+  background: var(--cream-light);
+  border-radius: 3px;
+  padding: 1.2rem 1rem;
   text-align: center;
-  transform: translateY(0);
-  transition: transform 0.7s 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-  z-index: 1;
-  box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
-}
-.env-wrapper.opening .env-letter {
-  transform: translateY(-80%);
+  z-index: 4;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
 }
 .env-letter-eyebrow {
   font-family: var(--font-body);
-  font-size: 0.6rem;
-  letter-spacing: 0.2em;
+  font-size: 0.58rem;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--olive);
   margin-bottom: 0.4rem;
+  font-weight: 400;
 }
 .env-letter-name {
   font-family: var(--font-display);
-  font-size: 1.3rem;
+  font-size: 1.25rem;
   color: var(--black);
   font-style: italic;
+  font-weight: 400;
   line-height: 1.2;
 }
 .env-letter-sub {
-  font-size: 0.65rem;
+  font-family: var(--font-body);
+  font-size: 0.62rem;
   color: var(--olive);
   margin-top: 0.3rem;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.08em;
+  font-weight: 300;
 }
 
 /* Hint text */
 .env-hint {
-  margin-top: 1.6rem;
+  margin-top: 1.8rem;
   font-family: var(--font-body);
-  font-size: 0.72rem;
-  letter-spacing: 0.15em;
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: rgba(245,240,232,0.55);
+  color: rgba(245,240,232,0.5);
   animation: pulse 2s ease-in-out infinite;
+  font-weight: 300;
 }
-@keyframes pulse { 0%,100%{opacity:.55} 50%{opacity:1} }
+@keyframes pulse { 0%,100%{opacity:.5} 50%{opacity:1} }
 
 .env-open-btn {
   margin-top: 2rem;
-  padding: 0.8rem 2.2rem;
+  padding: 0.85rem 2.4rem;
   background: transparent;
   border: 1.5px solid var(--gold);
   color: var(--gold);
   font-family: var(--font-body);
-  font-size: 0.78rem;
-  letter-spacing: 0.2em;
+  font-size: 0.75rem;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
   cursor: pointer;
   border-radius: 2px;
   transition: background 0.2s, color 0.2s;
-  display: none;
+  opacity: 0;
+  visibility: hidden;
+  font-weight: 400;
 }
-.env-wrapper.opening ~ .env-open-btn,
-.env-open-btn.show { display: block; }
 .env-open-btn:hover { background: var(--gold); color: var(--black); }
 
 /* ============================================================
