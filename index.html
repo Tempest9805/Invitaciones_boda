@@ -33,7 +33,11 @@
    RESET & BASE
    ============================================================ */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
 body {
   font-family: var(--font-body);
   background: var(--black);
@@ -995,6 +999,34 @@ section { position: relative; }
 }
 
 /* ============================================================
+   POLISH — make-interfaces-feel-better + frontend-a11y (ECC)
+   ============================================================ */
+/* text-wrap: balance en títulos evita líneas huérfanas */
+.hero-names, .section-title, .timeline-title,
+.event-name, .footer-names, .quote-text, .rsvp-success h3 {
+  text-wrap: balance;
+}
+/* text-wrap: pretty en cuerpo de texto */
+.section-sub, .event-address, .gifts-note,
+.timeline-desc, .companion-num-label, .hero-eyebrow {
+  text-wrap: pretty;
+}
+/* tabular-nums evita que el countdown "baile" al cambiar dígitos */
+.countdown-num { font-variant-numeric: tabular-nums; }
+
+/* press táctil en botones interactivos */
+.submit-btn:active { transform: scale(0.98); }
+.map-btn:active    { transform: scale(0.97); }
+
+/* prefers-reduced-motion — respeta preferencias del sistema */
+@media (prefers-reduced-motion: reduce) {
+  .reveal          { transition: none; }
+  .flowers-row     { animation: none; }
+  .hero-scroll-hint{ animation: none; }
+  .env-hint        { animation: none; }
+}
+
+/* ============================================================
    RESPONSIVE — desktop tweaks
    ============================================================ */
 @media (min-width: 600px) {
@@ -1341,14 +1373,14 @@ section { position: relative; }
 
       <!-- Teléfono -->
       <div class="form-group">
-        <label class="form-label">WhatsApp / Teléfono</label>
-        <input class="form-input" id="rsvp-phone" type="tel" placeholder="8888-0000"/>
+        <label class="form-label" for="rsvp-phone">WhatsApp / Teléfono</label>
+        <input class="form-input" id="rsvp-phone" type="tel" placeholder="8888-0000" aria-required="true"/>
       </div>
 
       <!-- Asistencia -->
       <div class="form-group">
-        <label class="form-label">¿Asistirás?</label>
-        <select class="form-select" id="rsvp-attend" onchange="handleAttendChange()">
+        <label class="form-label" for="rsvp-attend">¿Asistirás?</label>
+        <select class="form-select" id="rsvp-attend" onchange="handleAttendChange()" aria-required="true">
           <option value="">Selecciona...</option>
           <option value="si">✅ Sí, asistiré con gusto</option>
           <option value="no">❌ No podré asistir</option>
@@ -1357,7 +1389,7 @@ section { position: relative; }
 
       <!-- Cuántos acompañantes trae (solo aparece si asiste y tiene cupos) -->
       <div class="companions-section" id="companions-count-section">
-        <label class="form-label" id="companions-count-label">¿Cuántos acompañantes llevarás?</label>
+        <label class="form-label" id="companions-count-label" for="rsvp-companions-count">¿Cuántos acompañantes llevarás?</label>
         <select class="form-select" id="rsvp-companions-count" onchange="handleCompanionsCount()">
           <option value="0">Solo yo</option>
         </select>
@@ -1372,7 +1404,7 @@ section { position: relative; }
 
       <!-- Mensaje -->
       <div class="form-group">
-        <label class="form-label">Mensaje para los novios</label>
+        <label class="form-label" for="rsvp-message">Mensaje para los novios</label>
         <textarea class="form-textarea" id="rsvp-message" placeholder="Comparte unas palabras con Estiven y Johana ✨"></textarea>
       </div>
 
@@ -1382,7 +1414,7 @@ section { position: relative; }
     </div>
 
     <!-- Success -->
-    <div class="rsvp-success" id="rsvp-success">
+    <div class="rsvp-success" id="rsvp-success" role="status" aria-live="polite" aria-atomic="true">
       <div class="rsvp-success-icon"><i class="ph-thin ph-heart"></i></div>
       <h3>¡Gracias por confirmar!</h3>
       <p>Estiven y Johana están emocionados de compartir<br/>este día tan especial contigo.</p>
