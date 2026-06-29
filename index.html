@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400;1,700&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/thin/style.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
 
 <style>
@@ -976,6 +977,24 @@ section { position: relative; }
 .reveal.in { opacity: 1; transform: translateY(0); }
 
 /* ============================================================
+   PHOSPHOR ICONS — sizing
+   ============================================================ */
+.event-icon i[class*="ph-"]       { font-size: 1.75rem; }
+.timeline-dot i[class*="ph-"]     { font-size: 0.95rem; line-height: 1; }
+.gift-card-icon i[class*="ph-"]   { font-size: 1.7rem; color: var(--olive); }
+.rsvp-success-icon i[class*="ph-"]{ font-size: 2.6rem; color: var(--olive); }
+#music-btn i[class*="ph-"]        { font-size: 1rem; line-height: 1; }
+
+/* Dresscode silhouettes */
+.dress-silhouette {
+  width: 54px;
+  height: 80px;
+  color: var(--olive-dark);
+  margin: 0 auto 0.8rem;
+  display: block;
+}
+
+/* ============================================================
    RESPONSIVE — desktop tweaks
    ============================================================ */
 @media (min-width: 600px) {
@@ -993,7 +1012,7 @@ section { position: relative; }
 </audio>
 
 <!-- MUSIC BUTTON -->
-<button id="music-btn" title="Música" aria-label="Silenciar música">🎵</button>
+<button id="music-btn" title="Música" aria-label="Silenciar música"><i class="ph-thin ph-music-note"></i></button>
 
 <!-- ============================================================
      ENVELOPE SCREEN
@@ -1139,7 +1158,7 @@ section { position: relative; }
 
   <!-- CEREMONIA -->
   <section class="section-event">
-    <div class="event-icon reveal">⛪</div>
+    <div class="event-icon reveal"><i class="ph-thin ph-church"></i></div>
     <p class="event-eyebrow reveal">Ceremonia</p>
     <h2 class="event-name reveal">Iglesia de San Isidro</h2>
     <p class="event-time reveal">10:00 AM</p>
@@ -1156,7 +1175,7 @@ section { position: relative; }
 
   <!-- RECEPCIÓN -->
   <section class="section-event alt">
-    <div class="event-icon reveal">🥂</div>
+    <div class="event-icon reveal"><i class="ph-thin ph-wine"></i></div>
     <p class="event-eyebrow reveal">Recepción</p>
     <h2 class="event-name reveal">Sala de Eventos El Higuerón</h2>
     <p class="event-time reveal">12:00 PM</p>
@@ -1176,25 +1195,25 @@ section { position: relative; }
     <h2 class="timeline-title reveal">El día especial</h2>
     <div class="timeline">
       <div class="timeline-item reveal">
-        <div class="timeline-dot">⛪</div>
+        <div class="timeline-dot"><i class="ph-thin ph-church"></i></div>
         <p class="timeline-time">10:00 AM</p>
         <p class="timeline-label">Ceremonia religiosa</p>
         <p class="timeline-desc">Iglesia de San Isidro</p>
       </div>
       <div class="timeline-item reveal">
-        <div class="timeline-dot">🥂</div>
+        <div class="timeline-dot"><i class="ph-thin ph-wine"></i></div>
         <p class="timeline-time">12:00 PM</p>
         <p class="timeline-label">Recepción y cóctel</p>
         <p class="timeline-desc">Sala de Eventos El Higuerón · Bienvenida a los invitados</p>
       </div>
       <div class="timeline-item reveal">
-        <div class="timeline-dot">🍽️</div>
+        <div class="timeline-dot"><i class="ph-thin ph-fork-knife"></i></div>
         <p class="timeline-time">1:30 PM</p>
         <p class="timeline-label">Cena</p>
         <p class="timeline-desc">Compartamos la mesa en este día tan especial</p>
       </div>
       <div class="timeline-item reveal">
-        <div class="timeline-dot">💃</div>
+        <div class="timeline-dot"><i class="ph-thin ph-music-notes-simple"></i></div>
         <p class="timeline-time">3:00 PM</p>
         <p class="timeline-label">Fiesta y baile</p>
         <p class="timeline-desc">¡A celebrar hasta el amanecer!</p>
@@ -1211,22 +1230,22 @@ section { position: relative; }
     </p>
     <div class="gifts-cards">
       <div class="gift-card reveal">
-        <div class="gift-card-icon">💳</div>
+        <div class="gift-card-icon"><i class="ph-thin ph-device-mobile"></i></div>
         <p class="gift-card-label">Sinpe Móvil</p>
         <p class="gift-card-value">8888-0000</p><!-- Actualizar número -->
       </div>
       <div class="gift-card reveal">
-        <div class="gift-card-icon">🏦</div>
+        <div class="gift-card-icon"><i class="ph-thin ph-bank"></i></div>
         <p class="gift-card-label">Transferencia</p>
         <p class="gift-card-value">CR·····</p><!-- Actualizar IBAN -->
       </div>
       <div class="gift-card reveal">
-        <div class="gift-card-icon">✈️</div>
+        <div class="gift-card-icon"><i class="ph-thin ph-airplane-takeoff"></i></div>
         <p class="gift-card-label">Luna de miel</p>
         <p class="gift-card-value">Fondo de viaje</p>
       </div>
       <div class="gift-card reveal">
-        <div class="gift-card-icon">🎁</div>
+        <div class="gift-card-icon"><i class="ph-thin ph-gift"></i></div>
         <p class="gift-card-label">Lista física</p>
         <p class="gift-card-value">Consultar</p>
       </div>
@@ -1243,7 +1262,24 @@ section { position: relative; }
     <p class="section-sub reveal">Formal · Paleta verde olivo y negro</p>
     <div class="dress-grid">
       <div class="dress-card reveal">
-        <div class="dress-card-icon">🤵</div>
+        <svg class="dress-silhouette" viewBox="0 0 60 100" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <!-- cabeza -->
+          <ellipse cx="30" cy="11" rx="9" ry="10"/>
+          <!-- cuello -->
+          <rect x="27" y="20" width="6" height="5"/>
+          <!-- saco -->
+          <path d="M16 25 Q16 22 30 22 Q44 22 44 25 L47 66 L13 66 Z"/>
+          <!-- camisa (negativo) -->
+          <polygon points="25,23 35,23 32,55 28,55" fill="white"/>
+          <!-- solapa izquierda -->
+          <polygon points="25,23 13,43 24,47 27,30" fill="white"/>
+          <!-- solapa derecha -->
+          <polygon points="35,23 47,43 36,47 33,30" fill="white"/>
+          <!-- moño -->
+          <polygon points="24,27 30,30 36,27 30,23"/>
+          <!-- pantalones -->
+          <path d="M13 66 L15 94 L26 94 L30 77 L34 94 L45 94 L47 66 Z"/>
+        </svg>
         <p class="dress-card-gender">Hombres</p>
         <ul class="dress-card-items">
           <li>Traje formal</li>
@@ -1253,7 +1289,21 @@ section { position: relative; }
         </ul>
       </div>
       <div class="dress-card reveal">
-        <div class="dress-card-icon">👗</div>
+        <svg class="dress-silhouette" viewBox="0 0 60 100" fill="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <!-- cabeza -->
+          <ellipse cx="30" cy="10" rx="9" ry="10"/>
+          <!-- cuello -->
+          <rect x="27" y="19" width="6" height="5"/>
+          <!-- escote strapless / cuerpo ajustado -->
+          <path d="M21 24 Q30 21 39 24 L37 50 L23 50 Z"/>
+          <!-- hombros / escote curvo -->
+          <path d="M21 24 L12 30 L17 37 L22 32 Z"/>
+          <path d="M39 24 L48 30 L43 37 L38 32 Z"/>
+          <!-- falda ballgown -->
+          <path d="M23 50 L14 57 L6 76 L3 100 L57 100 L54 76 L46 57 L37 50 Z"/>
+          <!-- detalle cintura -->
+          <path d="M26 50 L30 58 L34 50 Z" fill="white" opacity="0.35"/>
+        </svg>
         <p class="dress-card-gender">Mujeres</p>
         <ul class="dress-card-items">
           <li>Vestido formal</li>
@@ -1333,7 +1383,7 @@ section { position: relative; }
 
     <!-- Success -->
     <div class="rsvp-success" id="rsvp-success">
-      <div class="rsvp-success-icon">🎉</div>
+      <div class="rsvp-success-icon"><i class="ph-thin ph-heart"></i></div>
       <h3>¡Gracias por confirmar!</h3>
       <p>Estiven y Johana están emocionados de compartir<br/>este día tan especial contigo.</p>
     </div>
