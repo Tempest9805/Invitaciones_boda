@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400;1,700&family=Jost:wght@200;300;400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
 
 <style>
 /* ============================================================
@@ -1323,27 +1324,71 @@ function loadGuest() {
 }
 
 // ============================================================
-// ENVELOPE ANIMATION
+// ENVELOPE ANIMATION — GSAP
 // ============================================================
-const envWrapper = document.getElementById('env-wrapper');
-const envOpenBtn = document.getElementById('env-open-btn');
+const envWrapper   = document.getElementById('env-wrapper');
+const envOpenBtn   = document.getElementById('env-open-btn');
+const envSeal      = document.getElementById('env-seal');
+const envFlap      = document.getElementById('env-flap');
+const envLetter    = document.getElementById('env-letter');
+const envHint      = document.getElementById('env-hint');
+
+let envelopeOpened = false;
 
 envWrapper.addEventListener('click', () => {
-  if (envWrapper.classList.contains('opening')) return;
-  envWrapper.classList.add('opening');
+  if (envelopeOpened) return;
+  envelopeOpened = true;
   tryStartAudio();
-  // Show button after flap opens
-  setTimeout(() => {
-    envOpenBtn.classList.add('show');
-  }, 900);
+
+  const tl = gsap.timeline();
+
+  // 1. Pulso de click en el sello
+  tl.to(envSeal, {
+    scale: 0.92, duration: 0.12, ease: 'power1.in'
+  })
+  // 2. Sello desaparece
+  .to(envSeal, {
+    opacity: 0, scale: 0.6, duration: 0.4, ease: 'power2.in'
+  })
+  // 3. Hint desaparece
+  .to(envHint, {
+    opacity: 0, duration: 0.3, ease: 'power1.out'
+  }, '<')
+  // 4. Flap se abre hacia atrás (rotationX en 3D)
+  .to(envFlap, {
+    rotationX: -185,
+    duration: 0.9,
+    ease: 'power2.inOut',
+    transformOrigin: 'top center',
+    transformPerspective: 700
+  }, '-=0.15')
+  // 5. Carta asciende
+  .to(envLetter, {
+    y: '-72%',
+    duration: 0.75,
+    ease: 'power2.out'
+  }, '-=0.4')
+  // 6. Botón aparece
+  .to(envOpenBtn, {
+    opacity: 1,
+    visibility: 'visible',
+    duration: 0.4,
+    ease: 'power1.out'
+  });
 });
 
 function finishEnvelope() {
-  document.getElementById('envelope-screen').classList.add('hidden');
-  const main = document.getElementById('main-content');
-  main.classList.add('visible');
-  // Small delay so transition is smooth
-  setTimeout(() => { main.style.opacity = '1'; }, 50);
+  const screen = document.getElementById('envelope-screen');
+  const main   = document.getElementById('main-content');
+
+  gsap.to(screen, {
+    opacity: 0, duration: 0.6, ease: 'power2.inOut',
+    onComplete: () => { screen.classList.add('hidden'); }
+  });
+  gsap.to(main, {
+    opacity: 1, duration: 0.7, delay: 0.2, ease: 'power2.out',
+    onStart: () => { main.classList.add('visible'); }
+  });
 }
 
 // ============================================================
