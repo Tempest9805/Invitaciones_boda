@@ -48,21 +48,22 @@ section { position: relative; }
 #music-btn {
   position: fixed;
   bottom: 1.4rem;
-  right: 1.4rem;
+  left: 1.4rem;
   z-index: 999;
-  width: 48px; height: 48px;
+  width: 44px; height: 44px;
   border-radius: 50%;
-  background: var(--olive-dark);
-  border: 1.5px solid var(--gold);
+  background: rgba(58,66,37,0.92);
+  border: 1.5px solid rgba(196,169,98,0.5);
   color: var(--gold);
-  font-size: 1.3rem;
+  font-size: 1.1rem;
   cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.4);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.3);
   transition: background 0.2s;
+  backdrop-filter: blur(4px);
 }
 #music-btn:hover { background: var(--olive); }
-#music-btn.muted { opacity: 0.5; }
+#music-btn.muted { opacity: 0.45; }
 
 /* ============================================================
    ENVELOPE SCREEN
@@ -337,34 +338,39 @@ section { position: relative; }
   padding: 0 1.5rem;
 }
 .hero-eyebrow {
-  font-size: 0.68rem;
-  letter-spacing: 0.3em;
+  font-family: var(--font-body);
+  font-size: 0.66rem;
+  letter-spacing: 0.32em;
   text-transform: uppercase;
   color: var(--gold);
   margin-bottom: 0.8rem;
-  font-weight: 400;
+  font-weight: 300;
 }
 .hero-names {
   font-family: var(--font-display);
-  font-size: clamp(3.2rem, 12vw, 5rem);
-  font-weight: 300;
+  font-size: clamp(3rem, 12vw, 5rem);
+  font-weight: 700;
+  font-style: italic;
   line-height: 1;
   color: var(--white);
   letter-spacing: -0.01em;
 }
 .hero-names .amp {
   font-style: italic;
+  font-weight: 400;
   color: var(--gold);
   display: block;
-  font-size: 0.6em;
-  margin: 0.1em 0;
+  font-size: 0.5em;
+  margin: 0.15em 0;
 }
 .hero-date {
   margin-top: 1.2rem;
-  font-size: 0.72rem;
-  letter-spacing: 0.25em;
+  font-family: var(--font-body);
+  font-size: 0.7rem;
+  letter-spacing: 0.28em;
   text-transform: uppercase;
-  color: rgba(245,240,232,0.65);
+  color: rgba(245,240,232,0.6);
+  font-weight: 200;
 }
 .hero-divider {
   width: 40px; height: 1px;
@@ -615,6 +621,7 @@ section { position: relative; }
   text-align: center;
   color: var(--cream);
   margin-bottom: 2.5rem;
+  font-weight: 400;
 }
 .timeline {
   position: relative;
@@ -629,7 +636,7 @@ section { position: relative; }
   top: 0.5rem;
   bottom: 0.5rem;
   width: 1px;
-  background: linear-gradient(to bottom, transparent, var(--olive) 15%, var(--olive) 85%, transparent);
+  background: linear-gradient(to bottom, transparent, var(--gold) 15%, var(--gold) 85%, transparent);
 }
 .timeline-item {
   position: relative;
@@ -645,7 +652,7 @@ section { position: relative; }
   border: 1.5px solid var(--gold);
   border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
 }
 .timeline-time {
   font-family: var(--font-display);
@@ -654,15 +661,16 @@ section { position: relative; }
   font-style: italic;
 }
 .timeline-label {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   color: var(--cream);
-  font-weight: 500;
+  font-weight: 400;
   margin: 0.1rem 0;
 }
 .timeline-desc {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   color: rgba(245,240,232,0.5);
   line-height: 1.5;
+  font-weight: 300;
 }
 
 /* ============================================================
@@ -907,14 +915,17 @@ section { position: relative; }
   font-family: var(--font-display);
   font-size: 1.4rem;
   font-style: italic;
+  font-weight: 400;
   color: var(--gold);
 }
 .footer-date {
-  font-size: 0.65rem;
-  letter-spacing: 0.2em;
+  font-family: var(--font-body);
+  font-size: 0.63rem;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
   color: rgba(245,240,232,0.35);
   margin-top: 0.4rem;
+  font-weight: 200;
 }
 
 /* ============================================================
@@ -922,8 +933,8 @@ section { position: relative; }
    ============================================================ */
 .reveal {
   opacity: 0;
-  transform: translateY(24px);
-  transition: opacity 0.7s ease, transform 0.7s ease;
+  transform: translateY(20px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .reveal.in { opacity: 1; transform: translateY(0); }
 
