@@ -137,9 +137,9 @@ section { position: relative; }
 .env-fold-left {
   position: absolute;
   bottom: 0; left: 0;
-  width: 0; height: 0;
-  border-bottom: calc(var(--env-h, 150px) * 0.55) solid rgba(40,50,20,0.45);
-  border-right: 50% solid transparent;
+  width: 50%; height: 55%;
+  background: rgba(40,50,20,0.45);
+  clip-path: polygon(0 100%, 100% 100%, 0 0);
   z-index: 2;
   pointer-events: none;
 }
@@ -148,9 +148,9 @@ section { position: relative; }
 .env-fold-right {
   position: absolute;
   bottom: 0; right: 0;
-  width: 0; height: 0;
-  border-bottom: calc(var(--env-h, 150px) * 0.55) solid rgba(40,50,20,0.45);
-  border-left: 50% solid transparent;
+  width: 50%; height: 55%;
+  background: rgba(40,50,20,0.45);
+  clip-path: polygon(100% 100%, 0 100%, 100% 0);
   z-index: 2;
   pointer-events: none;
 }
@@ -158,11 +158,10 @@ section { position: relative; }
 /* Bottom fold */
 .env-fold-bottom {
   position: absolute;
-  bottom: 0; left: 0; right: 0;
-  width: 0; height: 0;
-  border-left: 50% solid transparent;
-  border-right: 50% solid transparent;
-  border-bottom: calc(var(--env-h, 150px) * 0.52) solid rgba(55,65,28,0.5);
+  bottom: 0; left: 0;
+  width: 100%; height: 52%;
+  background: rgba(55,65,28,0.5);
+  clip-path: polygon(0 100%, 100% 100%, 50% 0);
   z-index: 3;
   pointer-events: none;
 }
@@ -170,23 +169,23 @@ section { position: relative; }
 /* Top flap — animates with GSAP rotationX */
 .env-flap {
   position: absolute;
-  top: 0; left: 0; right: 0;
-  width: 0; height: 0;
-  border-left: 50% solid transparent;
-  border-right: 50% solid transparent;
-  border-top: 52% solid rgba(60,72,32,0.96);
+  top: 0; left: 0;
+  width: 100%;
+  height: 52%;
+  background: rgba(60,72,32,0.96);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
   transform-origin: top center;
   z-index: 5;
   filter: brightness(0.82);
   backface-visibility: hidden;
+  overflow: hidden;
 }
 
 /* Flap texture overlay */
 .env-flap::after {
   content: '';
   position: absolute;
-  top: 0; left: -50vw; right: -50vw;
-  height: 100%;
+  inset: 0;
   background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E");
   pointer-events: none;
 }
