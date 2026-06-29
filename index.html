@@ -43,6 +43,12 @@ body {
   background: var(--black);
   color: var(--cream);
   overflow-x: hidden;
+  line-height: 1.6;
+}
+:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px;
+  border-radius: 2px;
 }
 img { display: block; width: 100%; object-fit: cover; }
 section { position: relative; }
@@ -279,25 +285,6 @@ section { position: relative; }
   font-weight: 300;
 }
 @keyframes pulse { 0%,100%{opacity:.5} 50%{opacity:1} }
-
-.env-open-btn {
-  margin-top: 2rem;
-  padding: 0.85rem 2.4rem;
-  background: transparent;
-  border: 1.5px solid var(--gold);
-  color: var(--gold);
-  font-family: var(--font-body);
-  font-size: 0.75rem;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  cursor: pointer;
-  border-radius: 2px;
-  transition: background 0.2s, color 0.2s;
-  opacity: 0;
-  visibility: hidden;
-  font-weight: 400;
-}
-.env-open-btn:hover { background: var(--gold); color: var(--black); }
 
 /* ============================================================
    MAIN CONTENT (hidden until envelope done)
@@ -620,7 +607,7 @@ section { position: relative; }
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.65rem 1.6rem;
+  padding: 0.85rem 1.6rem;
   border: 1.5px solid var(--olive);
   color: var(--olive);
   font-family: var(--font-body);
@@ -697,7 +684,7 @@ section { position: relative; }
 }
 .timeline-desc {
   font-size: 0.68rem;
-  color: rgba(245,240,232,0.5);
+  color: rgba(245,240,232,0.78);
   line-height: 1.5;
   font-weight: 300;
 }
@@ -834,10 +821,10 @@ section { position: relative; }
   background: var(--white);
   border: 1px solid rgba(92,107,58,0.25);
   border-radius: 4px;
-  padding: 0.75rem 1rem;
+  padding: 0.875rem 1rem;
   color: var(--black);
   font-family: var(--font-body);
-  font-size: 0.85rem;
+  font-size: 1rem;
   outline: none;
   transition: border-color 0.2s;
   appearance: none;
@@ -958,7 +945,7 @@ section { position: relative; }
   font-size: 0.63rem;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: rgba(245,240,232,0.35);
+  color: rgba(245,240,232,0.58);
   margin-top: 0.4rem;
   font-weight: 200;
 }
@@ -1017,6 +1004,10 @@ section { position: relative; }
 /* press táctil en botones interactivos */
 .submit-btn:active { transform: scale(0.98); }
 .map-btn:active    { transform: scale(0.97); }
+
+/* elimina el 300ms tap-delay en mobile */
+#music-btn, .map-btn, .submit-btn, .env-wrapper,
+.gift-btn, .rsvp-btn, button { touch-action: manipulation; }
 
 /* prefers-reduced-motion — respeta preferencias del sistema */
 @media (prefers-reduced-motion: reduce) {
@@ -1190,7 +1181,7 @@ section { position: relative; }
 
   <!-- CEREMONIA -->
   <section class="section-event">
-    <div class="event-icon reveal"><i class="ph-thin ph-church"></i></div>
+    <div class="event-icon reveal"><i class="ph-thin ph-church" aria-hidden="true"></i></div>
     <p class="event-eyebrow reveal">Ceremonia</p>
     <h2 class="event-name reveal">Iglesia de San Isidro</h2>
     <p class="event-time reveal">10:00 AM</p>
@@ -1207,7 +1198,7 @@ section { position: relative; }
 
   <!-- RECEPCIÓN -->
   <section class="section-event alt">
-    <div class="event-icon reveal"><i class="ph-thin ph-wine"></i></div>
+    <div class="event-icon reveal"><i class="ph-thin ph-wine" aria-hidden="true"></i></div>
     <p class="event-eyebrow reveal">Recepción</p>
     <h2 class="event-name reveal">Sala de Eventos El Higuerón</h2>
     <p class="event-time reveal">12:00 PM</p>
@@ -1227,25 +1218,25 @@ section { position: relative; }
     <h2 class="timeline-title reveal">El día especial</h2>
     <div class="timeline">
       <div class="timeline-item reveal">
-        <div class="timeline-dot"><i class="ph-thin ph-church"></i></div>
+        <div class="timeline-dot"><i class="ph-thin ph-church" aria-hidden="true"></i></div>
         <p class="timeline-time">10:00 AM</p>
         <p class="timeline-label">Ceremonia religiosa</p>
         <p class="timeline-desc">Iglesia de San Isidro</p>
       </div>
       <div class="timeline-item reveal">
-        <div class="timeline-dot"><i class="ph-thin ph-wine"></i></div>
+        <div class="timeline-dot"><i class="ph-thin ph-wine" aria-hidden="true"></i></div>
         <p class="timeline-time">12:00 PM</p>
         <p class="timeline-label">Recepción y cóctel</p>
         <p class="timeline-desc">Sala de Eventos El Higuerón · Bienvenida a los invitados</p>
       </div>
       <div class="timeline-item reveal">
-        <div class="timeline-dot"><i class="ph-thin ph-fork-knife"></i></div>
+        <div class="timeline-dot"><i class="ph-thin ph-fork-knife" aria-hidden="true"></i></div>
         <p class="timeline-time">1:30 PM</p>
         <p class="timeline-label">Cena</p>
         <p class="timeline-desc">Compartamos la mesa en este día tan especial</p>
       </div>
       <div class="timeline-item reveal">
-        <div class="timeline-dot"><i class="ph-thin ph-music-notes-simple"></i></div>
+        <div class="timeline-dot"><i class="ph-thin ph-music-notes-simple" aria-hidden="true"></i></div>
         <p class="timeline-time">3:00 PM</p>
         <p class="timeline-label">Fiesta y baile</p>
         <p class="timeline-desc">¡A celebrar hasta el amanecer!</p>
@@ -1537,10 +1528,20 @@ const envHint      = document.getElementById('env-hint');
 
 let envelopeOpened = false;
 
+const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
 envWrapper.addEventListener('click', () => {
   if (envelopeOpened) return;
   envelopeOpened = true;
   tryStartAudio();
+
+  if (prefersReducedMotion) {
+    document.getElementById('envelope-screen').classList.add('hidden');
+    const main = document.getElementById('main-content');
+    main.classList.add('visible');
+    main.style.opacity = '1';
+    return;
+  }
 
   const tl = gsap.timeline();
 
