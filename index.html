@@ -377,7 +377,7 @@ section { position: relative; }
    SECTION: CELEBRA
    ============================================================ */
 .section-celebra {
-  background: var(--cream);
+  background: var(--cream-light);
   color: var(--black);
   padding: 4rem 1.5rem 3rem;
   text-align: center;
@@ -385,20 +385,25 @@ section { position: relative; }
 .flowers-row {
   display: flex;
   justify-content: center;
-  gap: 0.5rem;
   margin-bottom: 1.5rem;
-  font-size: 1.8rem;
-  animation: float-flowers 3s ease-in-out infinite;
+  animation: float-flowers 3.5s ease-in-out infinite;
+}
+.olive-branch {
+  width: 160px;
+  height: 50px;
+  opacity: 0.85;
 }
 @keyframes float-flowers {
-  0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)}
+  0%,100%{ transform: translateY(0) rotate(-1deg); }
+  50%{ transform: translateY(-6px) rotate(1deg); }
 }
 .section-eyebrow {
-  font-size: 0.65rem;
+  font-size: 0.63rem;
   letter-spacing: 0.3em;
   text-transform: uppercase;
   color: var(--olive);
   margin-bottom: 0.5rem;
+  font-weight: 400;
 }
 .section-title {
   font-family: var(--font-display);
@@ -410,10 +415,11 @@ section { position: relative; }
   margin-bottom: 0.5rem;
 }
 .section-sub {
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   color: var(--olive);
   letter-spacing: 0.05em;
   margin-bottom: 2rem;
+  font-weight: 300;
 }
 
 /* Countdown */
@@ -472,7 +478,7 @@ section { position: relative; }
    SECTION: QUOTE
    ============================================================ */
 .section-quote {
-  background: #0F0F0D;
+  background: var(--olive-dark);
   padding: 4rem 2rem;
   text-align: center;
   position: relative;
@@ -482,11 +488,11 @@ section { position: relative; }
   content: '\201C';
   font-family: var(--font-display);
   font-size: 14rem;
-  color: var(--olive-dark);
+  color: var(--olive-light);
   position: absolute;
   top: -2rem; left: 0.5rem;
   line-height: 1;
-  opacity: 0.4;
+  opacity: 0.2;
   pointer-events: none;
 }
 .quote-text {
@@ -515,7 +521,7 @@ section { position: relative; }
    SECTION: ALBUM (3 fotos)
    ============================================================ */
 .section-album {
-  background: var(--black);
+  background: var(--cream-light);
   padding: 2rem 1rem;
 }
 .album-grid {
@@ -530,7 +536,7 @@ section { position: relative; }
 .album-grid > div {
   overflow: hidden;
   border-radius: 4px;
-  background: var(--olive-dark);
+  background: var(--olive);
 }
 .album-grid img { width: 100%; height: 100%; object-fit: cover; }
 
@@ -540,9 +546,10 @@ section { position: relative; }
 .section-event {
   padding: 3.5rem 1.5rem;
   text-align: center;
-  border-top: 1px solid rgba(255,255,255,0.06);
+  border-top: 1px solid rgba(92,107,58,0.12);
+  background: var(--cream-light);
 }
-.section-event.alt { background: var(--olive-dark); }
+.section-event.alt { background: var(--cream-alt); }
 .event-icon { font-size: 2.2rem; margin-bottom: 0.8rem; }
 .event-eyebrow {
   font-size: 0.62rem;
@@ -592,7 +599,7 @@ section { position: relative; }
    SECTION: TIMELINE
    ============================================================ */
 .section-timeline {
-  background: #0F0F0D;
+  background: var(--olive-dark);
   padding: 3.5rem 1.5rem;
 }
 .timeline-title {
@@ -656,7 +663,7 @@ section { position: relative; }
    SECTION: REGALOS
    ============================================================ */
 .section-gifts {
-  background: var(--olive-dark);
+  background: var(--cream-light);
   padding: 3.5rem 1.5rem;
   text-align: center;
 }
@@ -699,7 +706,7 @@ section { position: relative; }
    SECTION: DRESSCODE
    ============================================================ */
 .section-dress {
-  background: var(--black);
+  background: var(--cream-alt);
   padding: 3.5rem 1.5rem;
   text-align: center;
 }
@@ -751,7 +758,7 @@ section { position: relative; }
    SECTION: RSVP
    ============================================================ */
 .section-rsvp {
-  background: var(--olive-dark);
+  background: var(--cream-light);
   padding: 3.5rem 1.5rem 4rem;
   text-align: center;
 }
@@ -871,10 +878,10 @@ section { position: relative; }
    FOOTER
    ============================================================ */
 .footer {
-  background: var(--black);
+  background: var(--olive-dark);
   text-align: center;
   padding: 2rem 1rem;
-  border-top: 1px solid rgba(255,255,255,0.05);
+  border-top: 1px solid rgba(255,255,255,0.06);
 }
 .footer-names {
   font-family: var(--font-display);
