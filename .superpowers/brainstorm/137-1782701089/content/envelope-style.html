@@ -1,0 +1,311 @@
+<h2>Estilo del sobre animado</h2>
+<p class="subtitle">¿Cuál de estas tres direcciones de diseño se siente mejor para la apertura de la invitación?</p>
+
+<style>
+.env-preview-grid {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin: 24px 0;
+}
+.env-card {
+  cursor: pointer;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.2s;
+  width: 200px;
+  background: #1a1a18;
+}
+.env-card:hover { border-color: #C4A962; transform: translateY(-3px); }
+.env-card.selected { border-color: #C4A962; box-shadow: 0 0 0 4px rgba(196,169,98,0.25); }
+
+.env-preview {
+  height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* ---- OPCIÓN A: Sobre texturizado realista ---- */
+.preview-a {
+  background: radial-gradient(ellipse at 30% 30%, #8a9a5b, #5C6B3A 40%, #3A4225 80%, #2a3018);
+  background-size: 100% 100%;
+  position: relative;
+}
+.preview-a::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.12'/%3E%3C/svg%3E");
+  mix-blend-mode: overlay;
+  opacity: 0.6;
+}
+.env-a-body {
+  width: 140px;
+  height: 95px;
+  position: relative;
+  filter: drop-shadow(0 8px 24px rgba(0,0,0,0.6));
+}
+.env-a-face {
+  width: 140px;
+  height: 95px;
+  background: linear-gradient(160deg, #6b7d45 0%, #4a5a2a 40%, #3a4820 100%);
+  border-radius: 2px 2px 6px 6px;
+  position: relative;
+  overflow: hidden;
+}
+.env-a-face::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 3px,
+    rgba(255,255,255,0.02) 3px,
+    rgba(255,255,255,0.02) 6px
+  );
+}
+.env-a-flap {
+  position: absolute;
+  top: 0; left: 0;
+  width: 0;
+  height: 0;
+  border-left: 70px solid transparent;
+  border-right: 70px solid transparent;
+  border-top: 48px solid rgba(80,95,48,0.9);
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+.env-a-seal {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #d4b866, #a8853e 50%, #7a5e28);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.5), inset 0 1px 2px rgba(255,255,255,0.3);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 2;
+}
+.env-a-seal svg { width: 28px; height: 28px; }
+
+/* ---- OPCIÓN B: Sobre plano moderno con líneas doradas ---- */
+.preview-b {
+  background: linear-gradient(135deg, #2a3018, #1a1a18);
+}
+.env-b-body {
+  width: 150px;
+  height: 100px;
+  position: relative;
+}
+.env-b-face {
+  width: 150px;
+  height: 100px;
+  border: 1.5px solid #C4A962;
+  border-radius: 3px;
+  background: linear-gradient(160deg, #3A4225 0%, #2a3018 100%);
+  position: relative;
+}
+.env-b-lines {
+  position: absolute;
+  top: 0; left: 0;
+  width: 150px;
+  height: 100px;
+  overflow: hidden;
+}
+.env-b-lines::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  border-left: 75px solid transparent;
+  border-right: 75px solid transparent;
+  border-top: 50px solid rgba(196,169,98,0.15);
+}
+.env-b-lines::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0;
+  border-left: 75px solid transparent;
+  border-right: 75px solid transparent;
+  border-bottom: 45px solid rgba(196,169,98,0.1);
+}
+.env-b-seal {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  border: 1.5px solid #C4A962;
+  background: #3A4225;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 2;
+  font-family: 'Georgia', serif;
+  color: #C4A962;
+  font-size: 11px;
+  font-style: italic;
+  letter-spacing: 0.5px;
+}
+
+/* ---- OPCIÓN C: Sobre 3D con perspectiva y sombras realistas ---- */
+.preview-c {
+  background: radial-gradient(ellipse at center, #4a3520, #1a1a18);
+}
+.env-c-scene {
+  perspective: 400px;
+}
+.env-c-body {
+  width: 145px;
+  height: 98px;
+  position: relative;
+  transform: rotateX(8deg);
+  filter: drop-shadow(0 16px 32px rgba(0,0,0,0.7));
+}
+.env-c-face {
+  width: 145px;
+  height: 98px;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.05) 0%, transparent 50%),
+    linear-gradient(170deg, #7a8a50 0%, #5C6B3A 30%, #3A4225 70%, #2a3018 100%);
+  border-radius: 2px 2px 5px 5px;
+  position: relative;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.08),
+    0 4px 0 rgba(0,0,0,0.3);
+}
+.env-c-flap {
+  position: absolute;
+  top: 0; left: 0;
+  width: 0; height: 0;
+  border-left: 72.5px solid transparent;
+  border-right: 72.5px solid transparent;
+  border-top: 50px solid rgba(90,105,55,0.95);
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.4));
+}
+.env-c-seal {
+  position: absolute;
+  top: 46%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 30% 25%, #e8cc7a, #c4a840 35%, #8a6a1e 65%, #5a420e);
+  box-shadow:
+    0 4px 12px rgba(0,0,0,0.6),
+    0 1px 3px rgba(0,0,0,0.4),
+    inset 0 2px 3px rgba(255,255,255,0.25),
+    inset 0 -2px 3px rgba(0,0,0,0.3);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 2;
+}
+.env-c-seal svg { width: 30px; height: 30px; opacity: 0.9; }
+
+.env-card-label {
+  padding: 14px 16px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+.env-card-label h3 {
+  font-size: 14px;
+  font-weight: 600;
+  color: #F5F0E8;
+  margin-bottom: 4px;
+}
+.env-card-label p {
+  font-size: 12px;
+  color: rgba(245,240,232,0.5);
+  line-height: 1.4;
+}
+.tag {
+  display: inline-block;
+  font-size: 10px;
+  padding: 2px 8px;
+  border-radius: 10px;
+  margin-top: 6px;
+  letter-spacing: 0.05em;
+}
+.tag-rec { background: rgba(196,169,98,0.2); color: #C4A962; }
+.tag-sim { background: rgba(255,255,255,0.07); color: rgba(245,240,232,0.5); }
+</style>
+
+<div class="env-preview-grid">
+
+  <!-- OPCIÓN A -->
+  <div class="env-card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="env-preview preview-a">
+      <div class="env-a-body">
+        <div class="env-a-face">
+          <div class="env-a-flap"></div>
+          <div class="env-a-seal">
+            <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <!-- Lotus simplified -->
+              <circle cx="14" cy="14" r="12" fill="none" stroke="rgba(58,42,14,0.4)" stroke-width="0.5"/>
+              <ellipse cx="14" cy="17" rx="3" ry="5" fill="rgba(58,42,14,0.6)" transform="rotate(0,14,14)"/>
+              <ellipse cx="14" cy="17" rx="3" ry="5" fill="rgba(58,42,14,0.6)" transform="rotate(40,14,14)"/>
+              <ellipse cx="14" cy="17" rx="3" ry="5" fill="rgba(58,42,14,0.6)" transform="rotate(-40,14,14)"/>
+              <ellipse cx="14" cy="17" rx="2.5" ry="4" fill="rgba(58,42,14,0.5)" transform="rotate(80,14,14)"/>
+              <ellipse cx="14" cy="17" rx="2.5" ry="4" fill="rgba(58,42,14,0.5)" transform="rotate(-80,14,14)"/>
+              <circle cx="14" cy="16" r="2.5" fill="rgba(58,42,14,0.7)"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="env-card-label">
+      <h3>A — Textura Realista</h3>
+      <p>Verde olivo con ruido de textura, sello de cera dorado 3D con el logo</p>
+      <span class="tag tag-rec">★ Recomendado</span>
+    </div>
+  </div>
+
+  <!-- OPCIÓN B -->
+  <div class="env-card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="env-preview preview-b">
+      <div class="env-b-body">
+        <div class="env-b-face">
+          <div class="env-b-lines"></div>
+          <div class="env-b-seal">E&J</div>
+        </div>
+      </div>
+    </div>
+    <div class="env-card-label">
+      <h3>B — Líneas Doradas</h3>
+      <p>Fondo oscuro premium con bordes dorados y diagonales geométricas</p>
+      <span class="tag tag-sim">Minimalista</span>
+    </div>
+  </div>
+
+  <!-- OPCIÓN C -->
+  <div class="env-card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="env-preview preview-c">
+      <div class="env-c-scene">
+        <div class="env-c-body">
+          <div class="env-c-face">
+            <div class="env-c-flap"></div>
+            <div class="env-c-seal">
+              <svg viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <ellipse cx="15" cy="18" rx="3.5" ry="6" fill="rgba(58,42,14,0.65)"/>
+                <ellipse cx="15" cy="18" rx="3.5" ry="6" fill="rgba(58,42,14,0.65)" transform="rotate(45,15,15)"/>
+                <ellipse cx="15" cy="18" rx="3.5" ry="6" fill="rgba(58,42,14,0.65)" transform="rotate(-45,15,15)"/>
+                <ellipse cx="15" cy="18" rx="2.8" ry="5" fill="rgba(58,42,14,0.55)" transform="rotate(90,15,15)"/>
+                <circle cx="15" cy="17" r="3" fill="rgba(58,42,14,0.75)"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="env-card-label">
+      <h3>C — 3D con Perspectiva</h3>
+      <p>Sobre inclinado en perspectiva, sello de cera ultra-realista con gradiente</p>
+      <span class="tag tag-rec">Más dramático</span>
+    </div>
+  </div>
+
+</div>
+
+<p class="subtitle" style="font-size:13px; margin-top: 8px;">
+  💡 Todos incluyen animación de apertura donde el sello desaparece y la solapa se abre hacia arriba, revelando la carta con el nombre del invitado. Haz clic en la opción que prefieras.
+</p>

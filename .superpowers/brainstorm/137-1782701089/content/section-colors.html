@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Paleta de secciones</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #F5F0E8; font-family: 'Segoe UI', sans-serif; padding: 20px 16px 60px; color: #1a1a18; }
+
+h2 { font-size: 19px; text-align: center; margin-bottom: 6px; color: #1a1a18; }
+.subtitle { text-align: center; color: rgba(26,26,24,0.5); font-size: 13px; margin-bottom: 24px; }
+
+/* Toggle */
+.toggle-row {
+  display: flex; justify-content: center; gap: 12px; margin-bottom: 28px;
+}
+.toggle-btn {
+  padding: 8px 20px;
+  border-radius: 20px;
+  border: 1.5px solid rgba(26,26,24,0.2);
+  background: transparent;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #1a1a18;
+}
+.toggle-btn.active { background: #5C6B3A; color: #F5F0E8; border-color: #5C6B3A; }
+
+/* Strip simulation */
+.page-strip {
+  max-width: 380px;
+  margin: 0 auto;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+  border: 1px solid rgba(0,0,0,0.08);
+}
+
+/* === VERSIÓN ACTUAL (dark) === */
+.strip-dark .s-hero {
+  background: #1A1A18;
+  padding: 32px 20px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.strip-dark .s-hero .eyebrow { font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase; color: #C4A962; margin-bottom: 6px; }
+.strip-dark .s-hero .names { font-family: Georgia, serif; font-size: 26px; font-style: italic; color: #fff; font-weight: 300; line-height: 1.1; }
+.strip-dark .s-hero .amp { color: #C4A962; font-size: 16px; display: block; }
+.strip-dark .s-hero .date { font-size: 9px; letter-spacing: 0.25em; color: rgba(245,240,232,0.5); margin-top: 8px; text-transform: uppercase; }
+
+.strip-dark .s-celebra { background: #F5F0E8; padding: 28px 20px; text-align: center; border-bottom: 1px solid rgba(0,0,0,0.06); }
+.strip-dark .s-celebra .title { font-family: Georgia, serif; font-size: 18px; font-style: italic; color: #3A4225; margin-bottom: 12px; }
+.strip-dark .s-celebra .cd { display: grid; grid-template-columns: repeat(4,1fr); gap: 5px; }
+.strip-dark .s-celebra .cd-cell { background: #3A4225; color: #F5F0E8; border-radius: 4px; padding: 8px 4px; text-align: center; }
+.strip-dark .s-celebra .cd-num { font-family: Georgia, serif; font-size: 18px; color: #C4A962; font-weight: 600; }
+.strip-dark .s-celebra .cd-lbl { font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.7; }
+
+.strip-dark .s-quote { background: #0F0F0D; padding: 28px 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.strip-dark .s-quote .qt { font-family: Georgia, serif; font-style: italic; color: #F5F0E8; font-size: 13px; line-height: 1.7; }
+.strip-dark .s-quote .attr { font-size: 9px; color: #C4A962; letter-spacing: 0.15em; margin-top: 8px; text-transform: uppercase; }
+
+.strip-dark .s-event { background: #1A1A18; padding: 24px 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.strip-dark .s-event .ev-ey { font-size: 9px; letter-spacing: 0.25em; color: #C4A962; text-transform: uppercase; margin-bottom: 4px; }
+.strip-dark .s-event .ev-name { font-family: Georgia, serif; font-style: italic; font-size: 17px; color: #F5F0E8; margin-bottom: 4px; }
+.strip-dark .s-event .ev-time { font-family: Georgia, serif; font-size: 22px; color: #C4A962; font-weight: 300; margin-bottom: 10px; }
+.strip-dark .s-event .ev-btn { display: inline-block; border: 1px solid #C4A962; color: #C4A962; font-size: 10px; padding: 6px 14px; border-radius: 2px; letter-spacing: 0.15em; text-transform: uppercase; }
+
+.strip-dark .s-event-alt { background: #3A4225; padding: 24px 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.strip-dark .s-event-alt .ev-ey { font-size: 9px; letter-spacing: 0.25em; color: #C4A962; text-transform: uppercase; margin-bottom: 4px; }
+.strip-dark .s-event-alt .ev-name { font-family: Georgia, serif; font-style: italic; font-size: 17px; color: #F5F0E8; margin-bottom: 4px; }
+.strip-dark .s-event-alt .ev-time { font-family: Georgia, serif; font-size: 22px; color: #C4A962; font-weight: 300; margin-bottom: 10px; }
+.strip-dark .s-event-alt .ev-btn { display: inline-block; border: 1px solid #C4A962; color: #C4A962; font-size: 10px; padding: 6px 14px; border-radius: 2px; letter-spacing: 0.15em; text-transform: uppercase; }
+
+.strip-dark .s-rsvp { background: #3A4225; padding: 28px 20px; text-align: center; }
+.strip-dark .s-rsvp .rsvp-title { font-family: Georgia, serif; font-style: italic; font-size: 18px; color: #F5F0E8; margin-bottom: 14px; }
+.strip-dark .s-rsvp .rsvp-field { background: rgba(255,255,255,0.07); border: 1px solid rgba(196,169,98,0.3); border-radius: 4px; padding: 10px 14px; margin-bottom: 8px; color: rgba(245,240,232,0.5); font-size: 12px; text-align: left; }
+.strip-dark .s-rsvp .rsvp-btn { width: 100%; background: #C4A962; border: none; border-radius: 4px; padding: 12px; color: #1a1a18; font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; font-weight: 600; cursor: pointer; }
+
+/* === VERSIÓN NUEVA (cream/light) === */
+.strip-light .s-hero {
+  background: linear-gradient(to bottom, #2a3018, #3A4225);
+  padding: 32px 20px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+.strip-light .s-hero .eyebrow { font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase; color: #C4A962; margin-bottom: 6px; }
+.strip-light .s-hero .names { font-family: Georgia, serif; font-size: 26px; font-style: italic; color: #fff; font-weight: 300; line-height: 1.1; }
+.strip-light .s-hero .amp { color: #C4A962; font-size: 16px; display: block; }
+.strip-light .s-hero .date { font-size: 9px; letter-spacing: 0.25em; color: rgba(245,240,232,0.55); margin-top: 8px; text-transform: uppercase; }
+
+.strip-light .s-celebra { background: #FDFAF5; padding: 28px 20px; text-align: center; border-bottom: 1px solid rgba(92,107,58,0.1); }
+.strip-light .s-celebra .title { font-family: Georgia, serif; font-size: 18px; font-style: italic; color: #3A4225; margin-bottom: 12px; }
+.strip-light .s-celebra .cd { display: grid; grid-template-columns: repeat(4,1fr); gap: 5px; }
+.strip-light .s-celebra .cd-cell { background: #3A4225; color: #F5F0E8; border-radius: 4px; padding: 8px 4px; text-align: center; }
+.strip-light .s-celebra .cd-num { font-family: Georgia, serif; font-size: 18px; color: #C4A962; font-weight: 600; }
+.strip-light .s-celebra .cd-lbl { font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.7; }
+
+.strip-light .s-quote { background: #3A4225; padding: 28px 20px; text-align: center; border-bottom: 1px solid rgba(255,255,255,0.06); }
+.strip-light .s-quote .qt { font-family: Georgia, serif; font-style: italic; color: #F5F0E8; font-size: 13px; line-height: 1.7; }
+.strip-light .s-quote .attr { font-size: 9px; color: #C4A962; letter-spacing: 0.15em; margin-top: 8px; text-transform: uppercase; }
+
+.strip-light .s-event { background: #FDFAF5; padding: 24px 20px; text-align: center; border-bottom: 1px solid rgba(92,107,58,0.1); }
+.strip-light .s-event .ev-ey { font-size: 9px; letter-spacing: 0.25em; color: #5C6B3A; text-transform: uppercase; margin-bottom: 4px; }
+.strip-light .s-event .ev-name { font-family: Georgia, serif; font-style: italic; font-size: 17px; color: #1a1a18; margin-bottom: 4px; }
+.strip-light .s-event .ev-time { font-family: Georgia, serif; font-size: 22px; color: #5C6B3A; font-weight: 300; margin-bottom: 10px; }
+.strip-light .s-event .ev-btn { display: inline-block; border: 1.5px solid #5C6B3A; color: #5C6B3A; font-size: 10px; padding: 6px 14px; border-radius: 2px; letter-spacing: 0.15em; text-transform: uppercase; }
+
+.strip-light .s-event-alt { background: #EEE9DC; padding: 24px 20px; text-align: center; border-bottom: 1px solid rgba(92,107,58,0.1); }
+.strip-light .s-event-alt .ev-ey { font-size: 9px; letter-spacing: 0.25em; color: #5C6B3A; text-transform: uppercase; margin-bottom: 4px; }
+.strip-light .s-event-alt .ev-name { font-family: Georgia, serif; font-style: italic; font-size: 17px; color: #1a1a18; margin-bottom: 4px; }
+.strip-light .s-event-alt .ev-time { font-family: Georgia, serif; font-size: 22px; color: #5C6B3A; font-weight: 300; margin-bottom: 10px; }
+.strip-light .s-event-alt .ev-btn { display: inline-block; border: 1.5px solid #5C6B3A; color: #5C6B3A; font-size: 10px; padding: 6px 14px; border-radius: 2px; letter-spacing: 0.15em; text-transform: uppercase; }
+
+.strip-light .s-rsvp { background: #FDFAF5; padding: 28px 20px; text-align: center; }
+.strip-light .s-rsvp .rsvp-title { font-family: Georgia, serif; font-style: italic; font-size: 18px; color: #3A4225; margin-bottom: 14px; }
+.strip-light .s-rsvp .rsvp-field { background: rgba(92,107,58,0.05); border: 1px solid rgba(92,107,58,0.2); border-radius: 4px; padding: 10px 14px; margin-bottom: 8px; color: rgba(26,26,24,0.4); font-size: 12px; text-align: left; }
+.strip-light .s-rsvp .rsvp-btn { width: 100%; background: #5C6B3A; border: none; border-radius: 4px; padding: 12px; color: #F5F0E8; font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; font-weight: 600; cursor: pointer; }
+
+/* Shared footer */
+.s-footer { background: #3A4225; padding: 20px; text-align: center; }
+.s-footer p { font-family: Georgia, serif; font-style: italic; color: #C4A962; font-size: 15px; }
+.s-footer span { display: block; font-size: 9px; letter-spacing: 0.2em; color: rgba(245,240,232,0.35); margin-top: 4px; text-transform: uppercase; }
+
+/* Photo placeholder */
+.s-photo { height: 80px; background: linear-gradient(135deg, #5C6B3A, #3A4225); display: flex; align-items: center; justify-content: center; }
+.s-photo span { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: rgba(255,255,255,0.3); }
+
+/* Labels */
+.section-label {
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  display: block;
+  text-align: right;
+  opacity: 0.35;
+}
+.strip-dark .section-label { color: #1a1a18; background: rgba(0,0,0,0.05); }
+.strip-light .section-label { color: #1a1a18; background: rgba(0,0,0,0.04); }
+
+/* Diff badge */
+.changed {
+  position: relative;
+}
+.changed::before {
+  content: '●';
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  color: #5C9A3A;
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+.legend { display: flex; gap: 16px; justify-content: center; margin-top: 20px; font-size: 11px; color: rgba(26,26,24,0.5); align-items: center; }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+.dot-green { background: #5C9A3A; }
+.dot-same { background: rgba(26,26,24,0.2); }
+</style>
+</head>
+<body>
+
+<h2>Paleta de secciones</h2>
+<p class="subtitle">Compara el antes y después del esquema de color</p>
+
+<div class="toggle-row">
+  <button class="toggle-btn active" onclick="show('dark', this)">Actual (oscuro)</button>
+  <button class="toggle-btn" onclick="show('light', this)">Nuevo (crema / olivo)</button>
+</div>
+
+<!-- DARK VERSION -->
+<div class="page-strip strip-dark" id="view-dark">
+  <div class="s-hero">
+    <p class="eyebrow">Te invitamos a nuestra boda</p>
+    <h1 class="names">Estiven<span class="amp">&</span>Johana</h1>
+    <p class="date">13 · Marzo · 2026</p>
+  </div>
+  <div class="s-celebra">
+    <p class="title">Acompáñanos a celebrar nuestra boda</p>
+    <div class="cd">
+      <div class="cd-cell"><span class="cd-num">259</span><span class="cd-lbl">Días</span></div>
+      <div class="cd-cell"><span class="cd-num">14</span><span class="cd-lbl">Horas</span></div>
+      <div class="cd-cell"><span class="cd-num">32</span><span class="cd-lbl">Min</span></div>
+      <div class="cd-cell"><span class="cd-num">08</span><span class="cd-lbl">Seg</span></div>
+    </div>
+  </div>
+  <div class="s-photo"><span>Foto pareja</span></div>
+  <div class="s-quote">
+    <p class="qt">"El amor no se trata de mirar al otro, sino de mirar juntos en la misma dirección."</p>
+    <p class="attr">— Antoine de Saint-Exupéry</p>
+  </div>
+  <div class="s-event">
+    <p class="ev-ey">Ceremonia</p>
+    <h2 class="ev-name">Iglesia de San Isidro</h2>
+    <p class="ev-time">10:00 AM</p>
+    <span class="ev-btn">📍 Ver en Google Maps</span>
+  </div>
+  <div class="s-event-alt">
+    <p class="ev-ey">Recepción</p>
+    <h2 class="ev-name">El Higuerón</h2>
+    <p class="ev-time">12:00 PM</p>
+    <span class="ev-btn">📍 Ver en Google Maps</span>
+  </div>
+  <div class="s-rsvp">
+    <p class="rsvp-title">Confirma tu asistencia</p>
+    <div class="rsvp-field">Tu nombre aquí</div>
+    <div class="rsvp-field">WhatsApp / Teléfono</div>
+    <div class="rsvp-field">¿Asistirás?</div>
+    <button class="rsvp-btn">Confirmar asistencia</button>
+  </div>
+  <div class="s-footer">
+    <p>Estiven &amp; Johana</p>
+    <span>13 · Marzo · 2026</span>
+  </div>
+</div>
+
+<!-- LIGHT VERSION -->
+<div class="page-strip strip-light" id="view-light" style="display:none">
+  <div class="s-hero"><!-- Hero se queda con foto oscura -->
+    <p class="eyebrow">Te invitamos a nuestra boda</p>
+    <h1 class="names">Estiven<span class="amp">&</span>Johana</h1>
+    <p class="date">13 · Marzo · 2026</p>
+  </div>
+  <div class="s-celebra changed">
+    <p class="title">Acompáñanos a celebrar nuestra boda</p>
+    <div class="cd">
+      <div class="cd-cell"><span class="cd-num">259</span><span class="cd-lbl">Días</span></div>
+      <div class="cd-cell"><span class="cd-num">14</span><span class="cd-lbl">Horas</span></div>
+      <div class="cd-cell"><span class="cd-num">32</span><span class="cd-lbl">Min</span></div>
+      <div class="cd-cell"><span class="cd-num">08</span><span class="cd-lbl">Seg</span></div>
+    </div>
+  </div>
+  <div class="s-photo"><span>Foto pareja</span></div>
+  <div class="s-quote changed">
+    <p class="qt">"El amor no se trata de mirar al otro, sino de mirar juntos en la misma dirección."</p>
+    <p class="attr">— Antoine de Saint-Exupéry</p>
+  </div>
+  <div class="s-event changed">
+    <p class="ev-ey">Ceremonia</p>
+    <h2 class="ev-name">Iglesia de San Isidro</h2>
+    <p class="ev-time">10:00 AM</p>
+    <span class="ev-btn">📍 Ver en Google Maps</span>
+  </div>
+  <div class="s-event-alt changed">
+    <p class="ev-ey">Recepción</p>
+    <h2 class="ev-name">El Higuerón</h2>
+    <p class="ev-time">12:00 PM</p>
+    <span class="ev-btn">📍 Ver en Google Maps</span>
+  </div>
+  <div class="s-rsvp changed">
+    <p class="rsvp-title">Confirma tu asistencia</p>
+    <div class="rsvp-field">Tu nombre aquí</div>
+    <div class="rsvp-field">WhatsApp / Teléfono</div>
+    <div class="rsvp-field">¿Asistirás?</div>
+    <button class="rsvp-btn">Confirmar asistencia</button>
+  </div>
+  <div class="s-footer">
+    <p>Estiven &amp; Johana</p>
+    <span>13 · Marzo · 2026</span>
+  </div>
+</div>
+
+<div class="legend">
+  <span><span class="dot dot-green"></span>Sección cambiada</span>
+  <span><span class="dot dot-same"></span>Sin cambio</span>
+</div>
+
+<p style="text-align:center;font-size:12px;color:rgba(26,26,24,0.45);margin-top:18px;line-height:1.7;max-width:340px;margin-left:auto;margin-right:auto">
+  El Hero mantiene fondo oscuro/foto.<br/>
+  La cita y el footer usan verde olivo oscuro para romper el ritmo.<br/>
+  El resto cambia a crema <code>#FDFAF5</code> con acentos en verde olivo.
+</p>
+
+<script>
+function show(mode, btn) {
+  document.getElementById('view-dark').style.display = mode === 'dark' ? 'block' : 'none';
+  document.getElementById('view-light').style.display = mode === 'light' ? 'block' : 'none';
+  document.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+</script>
+</body>
+</html>
