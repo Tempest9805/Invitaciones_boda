@@ -140,6 +140,20 @@ section { position: relative; }
   aspect-ratio: 3/2;
   position: relative;
   filter: drop-shadow(0 24px 48px rgba(0,0,0,0.7)) drop-shadow(0 8px 16px rgba(0,0,0,0.4));
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+
+/* Sombra elíptica de apoyo — da presencia física sobre la "mesa" */
+.env-ground {
+  position: absolute;
+  left: 50%; bottom: -12%;
+  width: 84%; height: 14%;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.22) 45%, transparent 72%);
+  filter: blur(6px);
+  z-index: -1;
+  pointer-events: none;
 }
 
 /* Back face (visible through open flap) */
@@ -149,6 +163,19 @@ section { position: relative; }
   border-radius: 3px 3px 7px 7px;
   background: linear-gradient(170deg, #d4c89a 0%, #c8bc8e 40%, #b8a97a 100%);
   z-index: 0;
+  overflow: hidden;
+}
+/* Forro interior con patrón dorado — visible al abrirse el flap */
+.env-back::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 55%;
+  background:
+    radial-gradient(circle at 8px 8px, rgba(140,105,30,0.28) 1.5px, transparent 2px);
+  background-size: 16px 16px;
+  opacity: 0.9;
+  pointer-events: none;
 }
 
 /* Front face with olive texture */
@@ -178,7 +205,7 @@ section { position: relative; }
   position: absolute;
   bottom: 0; left: 0;
   width: 50%; height: 55%;
-  background: rgba(40,50,20,0.45);
+  background: linear-gradient(115deg, rgba(255,255,255,0.05) 0%, rgba(40,50,20,0.45) 12%, rgba(40,50,20,0.45) 100%);
   clip-path: polygon(0 100%, 100% 100%, 0 0);
   z-index: 2;
   pointer-events: none;
@@ -189,7 +216,7 @@ section { position: relative; }
   position: absolute;
   bottom: 0; right: 0;
   width: 50%; height: 55%;
-  background: rgba(40,50,20,0.45);
+  background: linear-gradient(245deg, rgba(255,255,255,0.05) 0%, rgba(40,50,20,0.45) 12%, rgba(40,50,20,0.45) 100%);
   clip-path: polygon(100% 100%, 0 100%, 100% 0);
   z-index: 2;
   pointer-events: none;
@@ -200,7 +227,7 @@ section { position: relative; }
   position: absolute;
   bottom: 0; left: 0;
   width: 100%; height: 52%;
-  background: rgba(55,65,28,0.5);
+  background: linear-gradient(to bottom, rgba(255,255,255,0.07) 0%, rgba(55,65,28,0.5) 8%, rgba(55,65,28,0.5) 100%);
   clip-path: polygon(0 100%, 100% 100%, 50% 0);
   z-index: 3;
   pointer-events: none;
@@ -230,14 +257,14 @@ section { position: relative; }
   pointer-events: none;
 }
 
-/* Wax seal */
+/* Wax seal — forma irregular como cera real */
 .env-seal {
   position: absolute;
   top: 46%; left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%) rotate(-4deg);
   animation: seal-glow 3.5s ease-in-out infinite;
   width: 72px; height: 72px;
-  border-radius: 50%;
+  border-radius: 48% 52% 51% 49% / 53% 47% 52% 48%;
   background:
     radial-gradient(circle at 30% 28%, #f5df85 0%, #d4aa3a 28%, #9a7318 55%, #5e420a 78%, #2e1e02 100%);
   box-shadow:
@@ -254,8 +281,21 @@ section { position: relative; }
   content: '';
   position: absolute;
   inset: 5px;
-  border-radius: 50%;
+  border-radius: inherit;
   border: 1px solid rgba(200,155,20,0.3);
+  pointer-events: none;
+}
+/* gotas de cera desbordadas */
+.env-seal::after {
+  content: '';
+  position: absolute;
+  inset: -7px;
+  border-radius: 55% 45% 48% 52% / 47% 55% 45% 53%;
+  background:
+    radial-gradient(circle at 78% 18%, rgba(154,115,24,0.55) 0%, rgba(154,115,24,0.55) 7%, transparent 8%),
+    radial-gradient(circle at 12% 62%, rgba(154,115,24,0.5) 0%, rgba(154,115,24,0.5) 9%, transparent 10%),
+    radial-gradient(circle at 60% 94%, rgba(120,88,16,0.45) 0%, rgba(120,88,16,0.45) 6%, transparent 7%);
+  z-index: -1;
   pointer-events: none;
 }
 .env-seal-svg {
@@ -268,12 +308,24 @@ section { position: relative; }
 .env-letter {
   position: absolute;
   bottom: 4%; left: 8%; right: 8%;
-  background: var(--cream-light);
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23p)' opacity='0.05'/%3E%3C/svg%3E"),
+    var(--cream-light);
   border-radius: 3px;
   padding: 1.2rem 1rem;
   text-align: center;
   z-index: 4;
-  box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+  box-shadow:
+    0 -4px 20px rgba(0,0,0,0.15),
+    inset 0 0 0 1px rgba(92,107,58,0.08);
+}
+/* filo superior del papel */
+.env-letter::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(255,255,255,0.9), transparent);
 }
 .env-letter-eyebrow {
   font-family: var(--font-body);
@@ -1213,6 +1265,7 @@ section { position: relative; }
   </div>
 
   <div class="env-wrapper" id="env-wrapper">
+    <div class="env-ground" aria-hidden="true"></div>
     <div class="env-scene">
       <div class="env-body" id="env-body">
         <div class="env-back"></div>
@@ -1676,6 +1729,22 @@ let envelopeOpened = false;
 
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+// Tilt 3D sutil siguiendo el puntero (solo desktop con hover real)
+const envBody = document.getElementById('env-body');
+if (!prefersReducedMotion && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
+  envWrapper.addEventListener('pointermove', (e) => {
+    if (envelopeOpened) return;
+    const rect = envWrapper.getBoundingClientRect();
+    const px = (e.clientX - rect.left) / rect.width  - 0.5;
+    const py = (e.clientY - rect.top)  / rect.height - 0.5;
+    gsap.to(envBody, { rotationY: px * 10, rotationX: -py * 8, duration: 0.5, ease: 'power2.out' });
+  });
+  envWrapper.addEventListener('pointerleave', () => {
+    if (envelopeOpened) return;
+    gsap.to(envBody, { rotationY: 0, rotationX: 0, duration: 0.7, ease: 'power2.out' });
+  });
+}
+
 envWrapper.addEventListener('click', () => {
   if (envelopeOpened) return;
   envelopeOpened = true;
@@ -1688,6 +1757,8 @@ envWrapper.addEventListener('click', () => {
     main.style.opacity = '1';
     return;
   }
+
+  gsap.to(envBody, { rotationX: 0, rotationY: 0, duration: 0.3, ease: 'power2.out' });
 
   const tl = gsap.timeline();
 
