@@ -1271,6 +1271,7 @@ section { position: relative; }
   .flowers-row     { animation: none; }
   .hero-scroll-hint{ animation: none; }
   .env-hint        { animation: none; }
+  .hero-photo img  { animation: none; }
 }
 
 /* ============================================================
@@ -1911,9 +1912,19 @@ envWrapper.addEventListener('click', () => {
       const main = document.getElementById('main-content');
       main.classList.add('visible');
       gsap.fromTo(main, { opacity: 0 }, { opacity: 1, duration: 0.6, ease: 'power2.out' });
+      heroIntro();
     }
   }, '-=0.2');
 });
+
+// Entrada orquestada del hero tras abrir el sobre
+function heroIntro() {
+  gsap.fromTo(
+    ['.hero-eyebrow', '.hero-names', '.hero-divider', '.hero-date'],
+    { y: 26, opacity: 0 },
+    { y: 0, opacity: 1, duration: 0.9, stagger: 0.16, ease: 'power3.out', delay: 0.15 }
+  );
+}
 
 function finishEnvelope() {
   const screen = document.getElementById('envelope-screen');
