@@ -233,27 +233,58 @@ section { position: relative; }
   pointer-events: none;
 }
 
-/* Top flap — animates with GSAP rotationX */
+/* Top flap — 3 segmentos anidados que rotan en cascada para
+   simular la curvatura del papel al abrirse.
+   Geometría: flap total = 52% del sobre, repartido 36/34/30.
+   banda 1 = 18.72% del sobre; banda 2 = 94.44% de banda 1;
+   banda 3 = 88.24% de banda 2. Cada ::before lleva el visual
+   (color+ruido+clip trapezoidal); los contenedores quedan
+   transparentes y con preserve-3d para componer las rotaciones. */
 .env-flap {
   position: absolute;
   top: 0; left: 0;
   width: 100%;
-  height: 52%;
-  background: rgba(60,72,32,0.96);
-  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  height: 18.72%;
   transform-origin: top center;
   z-index: 5;
-  filter: brightness(0.82);
-  backface-visibility: hidden;
-  overflow: hidden;
+  transform-style: preserve-3d;
 }
+.env-flap-seg {
+  position: absolute;
+  top: calc(100% - 0.5px);
+  left: 0;
+  width: 100%;
+  transform-origin: top center;
+  transform-style: preserve-3d;
+}
+#env-flap-seg2 { height: 94.44%; }
+#env-flap-seg3 { height: 88.24%; }
 
-/* Flap texture overlay */
-.env-flap::after {
+.env-flap::before,
+.env-flap-seg::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E");
+  background-color: rgba(60,72,32,0.96);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E"),
+    linear-gradient(to bottom, rgba(0,0,0,0) 55%, rgba(0,0,0,0.1) 100%);
+  filter: brightness(0.82);
+  backface-visibility: hidden;
+  pointer-events: none;
+}
+.env-flap::before      { clip-path: polygon(0 0, 100% 0, 82% 100%, 18% 100%); }
+#env-flap-seg2::before { clip-path: polygon(18% 0, 82% 0, 65% 100%, 35% 100%); }
+#env-flap-seg3::before { clip-path: polygon(35% 0, 65% 0, 50% 100%); }
+
+/* Sombra interior bajo el flap — se desvanece al abrir ("entra la luz") */
+.env-open-shade {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 52%;
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  background: linear-gradient(to bottom, rgba(20,26,8,0.42), rgba(20,26,8,0.14) 70%, transparent);
+  z-index: 3;
   pointer-events: none;
 }
 
@@ -1327,7 +1358,12 @@ section { position: relative; }
         <div class="env-fold-left"></div>
         <div class="env-fold-right"></div>
         <div class="env-fold-bottom"></div>
-        <div class="env-flap" id="env-flap"></div>
+        <div class="env-open-shade" aria-hidden="true"></div>
+        <div class="env-flap" id="env-flap">
+          <div class="env-flap-seg" id="env-flap-seg2">
+            <div class="env-flap-seg" id="env-flap-seg3"></div>
+          </div>
+        </div>
         <div class="env-seal" id="env-seal">
           <svg class="env-seal-svg" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <!-- Anillo exterior -->
@@ -1809,6 +1845,8 @@ const envHint      = document.getElementById('env-hint');
 let envelopeOpened = false;
 
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+// Si el CDN de GSAP falla (webview con mala red), el sobre debe seguir abriéndose
+const hasGsap = typeof gsap !== 'undefined';
 
 // Tilt 3D sutil siguiendo el puntero (solo desktop con hover real)
 const envBody = document.getElementById('env-body');
@@ -1816,14 +1854,14 @@ const hasFinePointer = window.matchMedia('(hover: hover) and (pointer: fine)').m
 
 // En mobile (sin puntero fino): balanceo 3D idle, como si el sobre flotara
 let idleSway = null;
-if (!prefersReducedMotion && !hasFinePointer) {
+if (!prefersReducedMotion && hasGsap && !hasFinePointer) {
   idleSway = gsap.timeline({ repeat: -1, yoyo: true })
     .to(envBody, { rotationY: 4, rotationX: -2.5, duration: 2.6, ease: 'sine.inOut' })
     .to(envBody, { rotationY: -4, rotationX: 1.5, duration: 2.6, ease: 'sine.inOut' });
 }
 
 // Feedback táctil al presionar (mobile y desktop)
-if (!prefersReducedMotion) {
+if (!prefersReducedMotion && hasGsap) {
   envWrapper.addEventListener('pointerdown', () => {
     if (envelopeOpened) return;
     gsap.to(envWrapper, { scale: 0.975, duration: 0.15, ease: 'power2.out' });
@@ -1834,7 +1872,7 @@ if (!prefersReducedMotion) {
   });
 }
 
-if (!prefersReducedMotion && hasFinePointer) {
+if (!prefersReducedMotion && hasGsap && hasFinePointer) {
   envWrapper.addEventListener('pointermove', (e) => {
     if (envelopeOpened) return;
     const rect = envWrapper.getBoundingClientRect();
@@ -1853,7 +1891,9 @@ envWrapper.addEventListener('click', () => {
   envelopeOpened = true;
   tryStartAudio();
 
-  if (prefersReducedMotion) {
+  // Sin GSAP o con reduced-motion: revelado instantáneo — el invitado
+  // nunca debe quedar atascado en el sobre
+  if (prefersReducedMotion || !hasGsap) {
     document.getElementById('envelope-screen').classList.add('hidden');
     const main = document.getElementById('main-content');
     main.classList.add('visible');
@@ -1878,14 +1918,31 @@ envWrapper.addEventListener('click', () => {
   .to(envHint, {
     opacity: 0, duration: 0.3, ease: 'power1.out'
   }, '<')
-  // 4. Flap se abre hacia atrás (rotationX en 3D)
+  // 4. Flap se abre con curvatura de papel: segmentos en cascada
   .to(envFlap, {
-    rotationX: -185,
+    rotationX: -100,
     duration: 0.9,
     ease: 'power2.inOut',
     transformOrigin: 'top center',
     transformPerspective: 700
   }, '-=0.15')
+  .to('#env-flap-seg2', {
+    rotationX: -52,
+    duration: 0.85,
+    ease: 'power2.inOut',
+    transformOrigin: 'top center'
+  }, '<0.07')
+  .to('#env-flap-seg3', {
+    rotationX: -38,
+    duration: 0.8,
+    ease: 'power2.out',
+    transformOrigin: 'top center'
+  }, '<0.07')
+  .to('.env-open-shade', {
+    opacity: 0,
+    duration: 0.7,
+    ease: 'power1.out'
+  }, '<-0.05')
   // 5. Nombre del frente cede el protagonismo a la carta
   .to(document.querySelector('.env-address'), {
     opacity: 0, duration: 0.35, ease: 'power1.out'
