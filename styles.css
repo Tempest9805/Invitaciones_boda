@@ -102,23 +102,59 @@ section { position: relative; }
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  padding: clamp(0.75rem, 4vh, 2rem) 1.25rem;
+  /* red de seguridad: nada de la escena puede generar scroll ni
+     asomar fuera del viewport, en ninguna orientación */
+  overflow: hidden;
   transition: opacity 0.7s ease, visibility 0.7s ease;
 }
 #envelope-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+/* Mientras el sobre está cerrado el documento no debe poder scrollear
+   (el #main-content sigue ocupando altura detrás de la capa fixed).
+   Se aplica desde JS para no dejar la página bloqueada sin JS. */
+body.env-locked { overflow: hidden; }
 
-/* Scene — adds perspective for 3D flap */
+/* Scene — establece la perspectiva del sobre.
+   La perspectiva se deriva del tamaño del sobre para que el
+   escorzo sea idéntico en 320px y en 1920px. */
 .env-scene {
-  perspective: 700px;
-  perspective-origin: 50% 40%;
+  perspective: calc(var(--env-size) * 2.1);
+  perspective-origin: 50% 38%;
+  /* La sombra proyectada vive AQUÍ y no en .env-body:
+     un `filter` sobre el elemento que declara `transform-style:
+     preserve-3d` fuerza su valor usado a `flat` y anula todo el 3D
+     de la solapa. Este era el bug raíz de la animación. */
+  filter:
+    drop-shadow(0 22px 42px rgba(0,0,0,0.62))
+    drop-shadow(0 7px 15px rgba(0,0,0,0.38));
+  animation: env-breathe 6.5s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  will-change: transform;
+}
+/* Idle: respiración vertical de 6px. Sin rebote, sin rotación. */
+@keyframes env-breathe {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50%      { transform: translate3d(0, -6px, 0); }
 }
 
-/* Envelope wrapper */
+/* Envelope wrapper — única fuente de verdad del tamaño.
+   min(88vw, 64vh) garantiza que el sobre entra tanto a lo ancho
+   (portrait 320px) como a lo alto (landscape 375px de alto). */
 .env-wrapper {
+  --env-size: clamp(232px, min(88vw, 64vh), 420px);
   position: relative;
-  width: min(340px, 88vw);
+  /* por encima de .env-branding (z-index 2): la carta al ascender se
+     superpone al nombre de los novios y no debe transparentarlo */
+  z-index: 3;
+  width: var(--env-size);
   cursor: pointer;
   user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  will-change: transform;
+}
+.env-wrapper:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 10px;
+  border-radius: 6px;
 }
 
 /* Envelope body container */
@@ -126,24 +162,42 @@ section { position: relative; }
   width: 100%;
   aspect-ratio: 3/2;
   position: relative;
-  filter: drop-shadow(0 24px 48px rgba(0,0,0,0.7)) drop-shadow(0 8px 16px rgba(0,0,0,0.4));
   transform-style: preserve-3d;
   will-change: transform;
 }
 
-/* Sombra elíptica de apoyo — da presencia física sobre la "mesa" */
+/* Sombra elíptica de apoyo — da presencia física sobre la "mesa".
+   Centrada con left/right (no con transform) para que GSAP pueda
+   animarle la escala sin pelearse con un translate previo. */
 .env-ground {
   position: absolute;
-  left: 50%; bottom: -12%;
-  width: 84%; height: 14%;
-  transform: translateX(-50%);
+  left: 8%; right: 8%; bottom: -12%;
+  height: 14%;
   background: radial-gradient(ellipse at center, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.22) 45%, transparent 72%);
   filter: blur(6px);
   z-index: -1;
   pointer-events: none;
 }
 
-/* Back face (visible through open flap) */
+/* ------------------------------------------------------------
+   ORDEN DE PINTADO DENTRO DEL SOBRE
+   Esto es el REVERSO de un sobre: la boca es el borde superior
+   (y = 0), no la V de los pliegues. Por eso la carta va DEBAJO de
+   la cara: mientras está dentro queda oculta por el papel, y sólo
+   se ve la parte que cruza y = 0. El recorte es exacto y gratuito.
+
+     0  .env-back        forro / base de papel
+     1  .env-letter      la invitación, dentro del sobre
+     2  .env-face        cara trasera del sobre
+     3  .env-fold-left / .env-fold-right
+     4  .env-fold-bottom
+     5  .env-address     nombre caligráfico
+     6  .env-mouth / .env-open-shade
+     7  .env-flap        solapa (3D)
+     8  .env-seal        lacre
+   ------------------------------------------------------------ */
+
+/* Base de papel */
 .env-back {
   position: absolute;
   inset: 0;
@@ -151,18 +205,6 @@ section { position: relative; }
   background: linear-gradient(170deg, #d4c89a 0%, #c8bc8e 40%, #b8a97a 100%);
   z-index: 0;
   overflow: hidden;
-}
-/* Forro interior con patrón dorado — visible al abrirse el flap */
-.env-back::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 55%;
-  background:
-    radial-gradient(circle at 8px 8px, rgba(140,105,30,0.28) 1.5px, transparent 2px);
-  background-size: 16px 16px;
-  opacity: 0.9;
-  pointer-events: none;
 }
 
 /* Front face with olive texture */
@@ -173,7 +215,7 @@ section { position: relative; }
   background:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23n)' opacity='0.09'/%3E%3C/svg%3E"),
     linear-gradient(165deg, #7a8c4e 0%, #5C6B3A 25%, #4d6030 55%, #3A4225 80%, #2e3520 100%);
-  z-index: 1;
+  z-index: 2;
   overflow: hidden;
 }
 
@@ -194,7 +236,7 @@ section { position: relative; }
   width: 50%; height: 55%;
   background: linear-gradient(115deg, rgba(255,255,255,0.05) 0%, rgba(40,50,20,0.45) 12%, rgba(40,50,20,0.45) 100%);
   clip-path: polygon(0 100%, 100% 100%, 0 0);
-  z-index: 2;
+  z-index: 3;
   pointer-events: none;
 }
 
@@ -205,7 +247,7 @@ section { position: relative; }
   width: 50%; height: 55%;
   background: linear-gradient(245deg, rgba(255,255,255,0.05) 0%, rgba(40,50,20,0.45) 12%, rgba(40,50,20,0.45) 100%);
   clip-path: polygon(100% 100%, 0 100%, 100% 0);
-  z-index: 2;
+  z-index: 3;
   pointer-events: none;
 }
 
@@ -216,53 +258,97 @@ section { position: relative; }
   width: 100%; height: 52%;
   background: linear-gradient(to bottom, rgba(255,255,255,0.07) 0%, rgba(55,65,28,0.5) 8%, rgba(55,65,28,0.5) 100%);
   clip-path: polygon(0 100%, 100% 100%, 50% 0);
-  z-index: 3;
+  z-index: 4;
   pointer-events: none;
+}
+
+/* Boca del sobre — sombra de contacto justo sobre el borde superior.
+   Oculta en reposo; se enciende al abrir la solapa y es lo que hace
+   que la carta parezca SALIR de una ranura y no aparecer encima. */
+.env-mouth {
+  position: absolute;
+  top: -4.2%; left: 0; right: 0;
+  height: 4.2%;
+  z-index: 6;
+  opacity: 0;
+  background: linear-gradient(to bottom,
+    rgba(12,16,4,0) 0%,
+    rgba(12,16,4,0.26) 55%,
+    rgba(12,16,4,0.5) 100%);
+  pointer-events: none;
+}
+/* filo iluminado del papel del sobre */
+.env-mouth::after {
+  content: '';
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 1px;
+  background: linear-gradient(to right, rgba(214,226,178,0), rgba(214,226,178,0.38), rgba(214,226,178,0));
 }
 
 /* Top flap — 3 segmentos anidados que rotan en cascada para
    simular la curvatura del papel al abrirse.
    Geometría: flap total = 52% del sobre, repartido 36/34/30.
    banda 1 = 18.72% del sobre; banda 2 = 94.44% de banda 1;
-   banda 3 = 88.24% de banda 2. Cada ::before lleva el visual
-   (color+ruido+clip trapezoidal); los contenedores quedan
-   transparentes y con preserve-3d para componer las rotaciones. */
+   banda 3 = 88.24% de banda 2.
+   Cada segmento es de DOS CARAS: ::before es el exterior (oliva) y
+   ::after el forro interior, pre-rotado 180°. Sin esto, al pasar de
+   90° la solapa desaparecía por backface-visibility. */
 .env-flap {
   position: absolute;
   top: 0; left: 0;
   width: 100%;
   height: 18.72%;
-  transform-origin: top center;
-  z-index: 5;
+  transform-origin: 50% 0;
+  z-index: 7;
   transform-style: preserve-3d;
+  will-change: transform;
 }
 .env-flap-seg {
   position: absolute;
   top: calc(100% - 0.5px);
   left: 0;
   width: 100%;
-  transform-origin: top center;
+  transform-origin: 50% 0;
   transform-style: preserve-3d;
 }
 #env-flap-seg2 { height: 94.44%; }
 #env-flap-seg3 { height: 88.24%; }
 
-.env-flap::before,
-.env-flap-seg::before {
+.env-flap::before,  .env-flap::after,
+.env-flap-seg::before, .env-flap-seg::after {
   content: '';
   position: absolute;
   inset: 0;
-  background-color: rgba(60,72,32,0.96);
-  background-image:
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E"),
-    linear-gradient(to bottom, rgba(0,0,0,0) 55%, rgba(0,0,0,0.1) 100%);
-  filter: brightness(0.82);
   backface-visibility: hidden;
   pointer-events: none;
 }
-.env-flap::before      { clip-path: polygon(0 0, 100% 0, 82% 100%, 18% 100%); }
-#env-flap-seg2::before { clip-path: polygon(18% 0, 82% 0, 65% 100%, 35% 100%); }
-#env-flap-seg3::before { clip-path: polygon(35% 0, 65% 0, 50% 100%); }
+/* Cara exterior. El brillo va horneado en el color en vez de un
+   filter: brightness(), que crearía un grupo de composición y
+   volvería inestable el backface-visibility. */
+.env-flap::before,
+.env-flap-seg::before {
+  background-color: #313b1a;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23n)' opacity='0.07'/%3E%3C/svg%3E"),
+    linear-gradient(to bottom, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0) 45%, rgba(0,0,0,0.14) 100%);
+}
+/* Forro interior: crema con el patrón dorado del sobre. Sólo se ve
+   cuando la solapa se ha volteado. El translateZ evita z-fighting. */
+.env-flap::after,
+.env-flap-seg::after {
+  transform: rotateY(180deg) translateZ(0.4px);
+  background-color: #cdc094;
+  background-image:
+    radial-gradient(circle at 8px 8px, rgba(140,105,30,0.26) 1.5px, transparent 2px),
+    linear-gradient(to bottom, rgba(255,255,255,0.18) 0%, rgba(60,45,10,0.14) 100%);
+  background-size: 16px 16px, auto;
+}
+/* Los clips son simétricos respecto a x=50%, así que sirven igual
+   para la cara exterior y para el forro espejado. */
+.env-flap::before,      .env-flap::after      { clip-path: polygon(0 0, 100% 0, 82% 100%, 18% 100%); }
+#env-flap-seg2::before, #env-flap-seg2::after { clip-path: polygon(18% 0, 82% 0, 65% 100%, 35% 100%); }
+#env-flap-seg3::before, #env-flap-seg3::after { clip-path: polygon(35% 0, 65% 0, 50% 100%); }
 
 /* Sombra interior bajo el flap — se desvanece al abrir ("entra la luz") */
 .env-open-shade {
@@ -271,17 +357,20 @@ section { position: relative; }
   width: 100%; height: 52%;
   clip-path: polygon(0 0, 100% 0, 50% 100%);
   background: linear-gradient(to bottom, rgba(20,26,8,0.42), rgba(20,26,8,0.14) 70%, transparent);
-  z-index: 3;
+  z-index: 6;
   pointer-events: none;
 }
 
-/* Wax seal — forma irregular como cera real */
+/* Wax seal — forma irregular como cera real.
+   Se centra con margin negativo (no con transform) para que GSAP
+   sea dueño absoluto del transform. */
 .env-seal {
   position: absolute;
   top: 46%; left: 50%;
-  transform: translate(-50%, -50%) rotate(-4deg);
-  animation: seal-glow 3.5s ease-in-out infinite;
-  width: 72px; height: 72px;
+  width:  calc(var(--env-size) * 0.212);
+  height: calc(var(--env-size) * 0.212);
+  margin: calc(var(--env-size) * -0.106) 0 0 calc(var(--env-size) * -0.106);
+  rotate: -4deg;
   border-radius: 48% 52% 51% 49% / 53% 47% 52% 48%;
   background:
     radial-gradient(circle at 30% 28%, #f5df85 0%, #d4aa3a 28%, #9a7318 55%, #5e420a 78%, #2e1e02 100%);
@@ -292,22 +381,25 @@ section { position: relative; }
     inset 0 -3px 6px rgba(0,0,0,0.4),
     inset 2px 0 4px rgba(255,230,100,0.12);
   display: flex; align-items: center; justify-content: center;
-  z-index: 6;
-  cursor: pointer;
+  z-index: 8;
+  pointer-events: none;
 }
+/* Halo de reposo — anima OPACIDAD, no box-shadow (compositor-only) */
 .env-seal::before {
   content: '';
   position: absolute;
-  inset: 5px;
+  inset: -8%;
   border-radius: inherit;
-  border: 1px solid rgba(200,155,20,0.3);
+  box-shadow: 0 0 22px 6px rgba(196,169,98,0.30);
+  opacity: 0;
+  animation: seal-glow 3.8s cubic-bezier(0.45, 0, 0.55, 1) infinite;
   pointer-events: none;
 }
 /* gotas de cera desbordadas */
 .env-seal::after {
   content: '';
   position: absolute;
-  inset: -7px;
+  inset: -10%;
   border-radius: 55% 45% 48% 52% / 47% 55% 45% 53%;
   background:
     radial-gradient(circle at 78% 18%, rgba(154,115,24,0.55) 0%, rgba(154,115,24,0.55) 7%, transparent 8%),
@@ -317,7 +409,7 @@ section { position: relative; }
   pointer-events: none;
 }
 .env-seal-svg {
-  width: 48px; height: 48px;
+  width: 66%; height: 66%;
   position: relative; z-index: 1;
   filter: drop-shadow(0 1px 2px rgba(0,0,0,0.4));
 }
@@ -329,10 +421,10 @@ section { position: relative; }
   left: 10%; right: 10%;
   text-align: center;
   font-family: 'Great Vibes', cursive;
-  font-size: clamp(1.35rem, 6.5vw, 1.7rem);
+  font-size: calc(var(--env-size) * 0.079);
   color: #E2CE8F;
   text-shadow: 0 1px 2px rgba(0,0,0,0.35);
-  z-index: 4;
+  z-index: 5;
   pointer-events: none;
   line-height: 1.15;
   overflow: hidden;
@@ -340,21 +432,34 @@ section { position: relative; }
   white-space: nowrap;
 }
 
-/* Letter card that rises from envelope — oculta hasta abrir */
+/* ------------------------------------------------------------
+   LA CARTA
+   Vive DENTRO del sobre (z-index 1, bajo .env-face). No se le
+   anima la opacidad: se le anima la posición, y el propio papel
+   del sobre la recorta. Al cruzar y=0 empieza a asomar.
+   ------------------------------------------------------------ */
 .env-letter {
-  opacity: 0;
   position: absolute;
-  bottom: 4%; left: 8%; right: 8%;
+  left: 8%; right: 8%;
+  bottom: 4%;
+  height: 86%;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 6% 9%;
+  font-size: calc(var(--env-size) * 0.047);
   background:
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='p'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23p)' opacity='0.05'/%3E%3C/svg%3E"),
     var(--cream-light);
-  border-radius: 3px;
-  padding: 1.2rem 1rem;
-  text-align: center;
-  z-index: 4;
+  border-radius: 2px 2px 3px 3px;
   box-shadow:
-    0 -4px 20px rgba(0,0,0,0.15),
-    inset 0 0 0 1px rgba(92,107,58,0.08);
+    0 -3px 16px rgba(0,0,0,0.22),
+    inset 0 0 0 1px rgba(92,107,58,0.09);
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
 }
 /* filo superior del papel */
 .env-letter::before {
@@ -366,33 +471,34 @@ section { position: relative; }
 }
 .env-letter-eyebrow {
   font-family: var(--font-body);
-  font-size: 0.58rem;
+  font-size: 0.68em;
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: var(--olive);
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.5em;
   font-weight: 400;
 }
 .env-letter-name {
   font-family: var(--font-display);
-  font-size: 1.25rem;
+  font-size: 1.3em;
   color: var(--black);
   font-style: italic;
   font-weight: 400;
   line-height: 1.2;
+  text-wrap: balance;
 }
 .env-letter-sub {
   font-family: var(--font-body);
-  font-size: 0.62rem;
+  font-size: 0.66em;
   color: var(--olive);
-  margin-top: 0.3rem;
+  margin-top: 0.3em;
   letter-spacing: 0.08em;
   font-weight: 300;
 }
 
 /* Hint text */
 .env-hint {
-  margin-top: 2rem;
+  margin-top: clamp(1rem, 3.5vh, 2rem);
   font-family: var(--font-body);
   font-size: 0.7rem;
   letter-spacing: 0.22em;
@@ -406,6 +512,7 @@ section { position: relative; }
   gap: 0.5rem;
   position: relative;
   z-index: 2;
+  text-align: center;
 }
 .env-hint-chevron {
   animation: hint-bounce 2.4s ease-in-out infinite;
@@ -424,13 +531,13 @@ section { position: relative; }
 /* Nombre de los novios sobre el sobre */
 .env-branding {
   text-align: center;
-  margin-bottom: 1.6rem;
+  margin-bottom: clamp(0.9rem, 2.6vh, 1.6rem);
   position: relative;
   z-index: 2;
 }
 .env-branding-names {
   font-family: var(--font-display);
-  font-size: 1.6rem;
+  font-size: clamp(1.25rem, 4.6vw, 1.75rem);
   font-style: italic;
   font-weight: 400;
   color: var(--gold);
@@ -453,36 +560,15 @@ section { position: relative; }
   font-weight: 300;
 }
 
-/* Marco dorado interior en la cara del sobre */
-.env-face::after {
-  content: '';
-  position: absolute;
-  inset: 10px;
-  border: 1px solid rgba(196,169,98,0.2);
-  border-radius: 2px;
-  pointer-events: none;
-}
+/* NOTA: antes había aquí un marco dorado interior (.env-face::after,
+   inset 10px). Al superponerse con los pliegues diagonales dibujaba un
+   segundo sobre más pequeño dentro del sobre. Eliminado a propósito:
+   debe leerse un único sobre. */
 
-/* Glow sutil en reposo del sello */
+/* Glow sutil en reposo del sello — sólo opacidad (GPU) */
 @keyframes seal-glow {
-  0%, 100% {
-    box-shadow:
-      0 6px 20px rgba(0,0,0,0.65),
-      0 2px 6px rgba(0,0,0,0.45),
-      inset 0 3px 5px rgba(255,255,255,0.28),
-      inset 0 -3px 6px rgba(0,0,0,0.4),
-      inset 2px 0 4px rgba(255,230,100,0.12),
-      0 0 0 0 rgba(196,169,98,0);
-  }
-  50% {
-    box-shadow:
-      0 6px 20px rgba(0,0,0,0.65),
-      0 2px 6px rgba(0,0,0,0.45),
-      inset 0 3px 5px rgba(255,255,255,0.28),
-      inset 0 -3px 6px rgba(0,0,0,0.4),
-      inset 2px 0 4px rgba(255,230,100,0.12),
-      0 0 22px 5px rgba(196,169,98,0.22);
-  }
+  0%, 100% { opacity: 0;   }
+  50%      { opacity: 0.9; }
 }
 
 /* Partículas flotantes */
@@ -516,15 +602,79 @@ section { position: relative; }
   opacity: 0.45;
 }
 
-/* Fix tamaños de fuente en carta */
-.env-letter-eyebrow { font-size: 0.7rem; }
-.env-letter-sub     { font-size: 0.7rem; }
+/* El hint late con la keyframe `pulse`, que anima `opacity`. Una
+   animación CSS gana siempre a la opacidad inline, así que sin esto
+   el "Toca el sobre para abrir" nunca se desvanecía al abrir. */
+#envelope-screen[data-env-state="opening"] .env-hint,
+#envelope-screen[data-env-state="opened"]  .env-hint { animation: none; }
 
-/* prefers-reduced-motion */
+/* ============================================================
+   SOBRE — APERTURA SIN GSAP (fallback CSS)
+   Se activa añadiendo .env-fallback a #envelope-screen. Cubre dos
+   casos: el CDN de GSAP no cargó, o el usuario pidió reduced-motion.
+   Cuando GSAP sí conduce la animación esta clase NO se aplica, así
+   que no hay transiciones CSS peleándose con el timeline.
+   ============================================================ */
+.env-fallback .env-flap {
+  transition: transform 0.72s cubic-bezier(0.32, 0.86, 0.28, 1);
+}
+.env-fallback .env-seal {
+  transition: opacity 0.34s ease-in, transform 0.34s ease-in;
+}
+.env-fallback .env-letter {
+  transition: transform 0.78s cubic-bezier(0.16, 1, 0.3, 1) 0.42s;
+}
+.env-fallback .env-address,
+.env-fallback .env-open-shade,
+.env-fallback .env-mouth,
+.env-fallback .env-hint {
+  transition: opacity 0.5s ease;
+}
+
+.env-fallback[data-env-state="opening"] .env-flap,
+.env-fallback[data-env-state="opened"]  .env-flap  { transform: rotateX(-148deg); }
+.env-fallback[data-env-state="opening"] .env-seal,
+.env-fallback[data-env-state="opened"]  .env-seal  { opacity: 0; transform: scale(0.55); }
+.env-fallback[data-env-state="opening"] .env-letter,
+.env-fallback[data-env-state="opened"]  .env-letter{ transform: translate3d(0, -78%, 0); }
+.env-fallback[data-env-state="opening"] .env-address,
+.env-fallback[data-env-state="opened"]  .env-address,
+.env-fallback[data-env-state="opening"] .env-open-shade,
+.env-fallback[data-env-state="opened"]  .env-open-shade,
+.env-fallback[data-env-state="opening"] .env-hint,
+.env-fallback[data-env-state="opened"]  .env-hint  { opacity: 0; }
+.env-fallback[data-env-state="opening"] .env-mouth,
+.env-fallback[data-env-state="opened"]  .env-mouth { opacity: 1; }
+
+/* ============================================================
+   SOBRE — LANDSCAPE / PANTALLAS BAJAS
+   ============================================================ */
+@media (orientation: landscape) and (max-height: 540px) {
+  .env-branding-names { font-size: 1.2rem; }
+  .env-branding-sep   { margin: 0.35rem auto; }
+  .env-branding-date  { font-size: 0.55rem; letter-spacing: 0.24em; }
+  .env-hint           { font-size: 0.6rem; letter-spacing: 0.18em; gap: 0.3rem; }
+  .env-hint-chevron   { width: 14px; height: 8px; }
+}
+
+/* prefers-reduced-motion — el sobre se abre igual, pero sin
+   coreografía: apertura breve y directa. No se pierde nada. */
 @media (prefers-reduced-motion: reduce) {
-  .env-seal           { animation: none; }
+  .env-seal::before   { animation: none; opacity: 0.35; }
   .env-particle       { animation: none; opacity: 0; }
   .env-hint-chevron   { animation: none; }
+  .env-scene          { animation: none; }
+  #envelope-screen    { transition-duration: 0.3s; }
+  .env-fallback .env-flap,
+  .env-fallback .env-seal,
+  .env-fallback .env-letter,
+  .env-fallback .env-address,
+  .env-fallback .env-open-shade,
+  .env-fallback .env-mouth,
+  .env-fallback .env-hint {
+    transition-duration: 0.26s;
+    transition-delay: 0s;
+  }
 }
 
 /* ============================================================
@@ -802,7 +952,18 @@ section { position: relative; }
 }
 .album-grid .photo-1 { grid-column: 1/3; height: 55vw; max-height: 280px; }
 .album-grid .photo-2,
-.album-grid .photo-3 { height: 35vw; max-height: 180px; }
+.album-grid .photo-3 { height: 100vw; max-height: 300px; }
+.album-grid .photo-4 { grid-column: 1/3; height: 55vw; max-height: 280px; }
+.album-grid .photo-5 { height: 55vw; max-height: 280px; }
+
+/* En mobile la quinta foto es impar y quedaba sola a media columna.
+   Ocupa las dos y cierra la retícula. Acotado con max-width porque
+   en desktop el mosaico de 3 columnas ya está equilibrado (fila 2 =
+   photo-4 ancha + photo-5) y no debe tocarse. */
+@media (max-width: 767px) {
+  .album-grid .photo-5 { grid-column: 1 / 3; }
+}
+
 /* marco de álbum: paspartú blanco + filo + sombra suave */
 .album-grid > div {
   overflow: hidden;
@@ -976,8 +1137,16 @@ section { position: relative; }
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.8rem;
-  max-width: 380px;
+  max-width: 100%;
   margin: 1.5rem auto 0;
+}
+/* Con 3 tarjetas en 2 columnas, la última ("Lista física") quedaba
+   sola a media columna. :nth-child(odd):last-child sólo dispara
+   cuando la última tarjeta cae sola en su fila, así que la regla
+   sigue siendo correcta si mañana se añade o se quita una tarjeta.
+   Sólo mobile: a partir de 600px la retícula pasa a 3 columnas. */
+@media (max-width: 599px) {
+  .gifts-cards .gift-card:nth-child(odd):last-child { grid-column: 1 / -1; }
 }
 .gift-card {
   background: var(--white);
@@ -1300,7 +1469,7 @@ section { position: relative; }
   .countdown-table { gap: 1rem; }
   .countdown-cell + .countdown-cell::before { left: calc(-0.5rem - 0.5px); }
   .album-grid .photo-1 { height: 40vw; max-height: 320px; }
-  .gifts-cards { grid-template-columns: repeat(4, 1fr); }
+  .gifts-cards { grid-template-columns: repeat(3, 1fr); }
 }
 
 /* ============================================================
@@ -1355,4 +1524,165 @@ section { position: relative; }
     max-height: none;
     aspect-ratio: 2 / 3;
   }
+}
+
+/* ============================================================
+   DESKTOP — escala tipográfica
+   Casi todo el sitio está medido en rem, así que subir el root
+   font-size agranda el texto de forma proporcional y consistente
+   en cualquier resolución de escritorio. Mobile (<768px) conserva
+   los 16px del navegador y queda idéntico.
+   ============================================================ */
+@media (min-width: 768px) {
+  html { font-size: 17.5px; }
+}
+@media (min-width: 1200px) {
+  html { font-size: 19px; }
+}
+@media (min-width: 1600px) {
+  html { font-size: 20px; }
+}
+
+/* ============================================================
+   DESKTOP — layout y ritmo de secciones
+   ============================================================ */
+@media (min-width: 768px) {
+
+  /* --- Respiro general: secciones más altas y con más aire --- */
+  .section-celebra { padding: 6rem 2rem 4.5rem; }
+  .section-quote   { padding: 6rem 2rem; }
+  .section-album   { padding: 3.5rem 2rem; }
+  .section-event   { padding: 5rem 2rem; }
+  .section-timeline,
+  .section-gifts,
+  .section-dress   { padding: 5.5rem 2rem; }
+  .section-rsvp    { padding: 5.5rem 2rem 6rem; }
+  .footer          { padding: 4rem 2rem 3.5rem; }
+
+  /* Countdown con más aire (el número creció con el root font-size) */
+  .countdown-table { max-width: 560px; gap: 1.5rem; }
+  .countdown-cell  { padding: 0.6rem 0.4rem; }
+  .countdown-cell + .countdown-cell::before { left: calc(-0.75rem - 0.5px); }
+
+  /* Ceremonia / Recepción: contenido centrado sin estirarse */
+  .event-address { max-width: 34ch; margin-left: auto; margin-right: auto; }
+
+  /* --- TIMELINE HORIZONTAL --------------------------------
+     En mobile es una columna vertical con la línea a la izquierda.
+     En desktop se convierte en 4 columnas con el raíl horizontal
+     por encima y los puntos centrados sobre cada hito.          */
+  .timeline-title { margin-bottom: 3.5rem; }
+  .timeline {
+    max-width: 1120px;
+    padding-left: 0;
+    padding-top: 3.6rem;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0 2rem;
+  }
+  .timeline::before {
+    left: 12.5%;
+    right: 12.5%;
+    top: 1.4rem;
+    bottom: auto;
+    width: auto;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--gold) 10%, var(--gold) 90%, transparent);
+  }
+  .timeline-item {
+    margin-bottom: 0;
+    text-align: center;
+    padding: 0 0.4rem;
+  }
+  .timeline-dot {
+    left: 50%;
+    top: -3.6rem;
+    transform: translateX(-50%);
+    width: 2.8rem;
+    height: 2.8rem;
+  }
+  .timeline-dot i[class*="ph-"] { font-size: 1.15rem; }
+  .timeline-time  { font-size: 1.15rem; }
+  .timeline-label { margin: 0.3rem 0 0.15rem; }
+  .timeline-desc  { max-width: 24ch; margin: 0 auto; }
+
+  /* --- REGALOS: fila horizontal amplia --------------------- */
+  .gifts-cards {
+    max-width: 1060px;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.4rem;
+    margin-top: 2.6rem;
+  }
+  .gift-card {
+    padding: 2.2rem 1.2rem;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    /* conserva la transición de .reveal y añade la del hover */
+    transition:
+      opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+      transform 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+      box-shadow 0.25s ease,
+      border-color 0.25s ease;
+  }
+  .gift-card:hover {
+    border-color: rgba(196,169,98,0.75);
+    box-shadow: 0 10px 26px rgba(58,66,37,0.16);
+  }
+  .gift-card-icon        { margin-bottom: 0.9rem; }
+  .gift-card-icon i[class*="ph-"] { font-size: 2.3rem; }
+  .gift-card-label       { letter-spacing: 0.14em; text-transform: uppercase; }
+  .gift-card-value       { font-size: 1.25rem; margin-top: 0.35rem; }
+  .gifts-note            { max-width: 46ch; margin-top: 2.2rem; }
+
+  /* --- VESTIMENTA: aprovecha el ancho ---------------------- */
+  .dress-grid {
+    max-width: 900px;
+    gap: 2rem;
+    margin-top: 2.6rem;
+  }
+  .dress-card {
+    padding: 2.4rem 1.8rem;
+    border-radius: 10px;
+  }
+  .dress-silhouette {
+    width: 140px;
+    height: 196px;
+    margin-bottom: 1.2rem;
+  }
+  .dress-card-gender { font-size: 0.8rem; margin-bottom: 0.7rem; }
+  .dress-card-items  { line-height: 2; }
+  .dress-palette     { gap: 0.9rem; margin-top: 2.2rem; }
+  .dress-color       { width: 40px; height: 40px; }
+
+  /* --- RSVP: formulario más cómodo ------------------------- */
+  .rsvp-form { max-width: 560px; margin-top: 2.5rem; }
+  .form-textarea { height: 120px; }
+}
+
+/* ≥1024px: las tarjetas de vestimenta pasan a formato horizontal
+   (silueta a la izquierda, lista a la derecha) para llenar el ancho */
+@media (min-width: 1024px) {
+  .dress-grid { max-width: 1060px; gap: 2.2rem; }
+  .dress-card {
+    display: grid;
+    grid-template-columns: auto auto;
+    grid-template-rows: auto auto;
+    align-content: center;
+    justify-content: center;
+    column-gap: 2.2rem;
+    text-align: left;
+    padding: 2.6rem 2.2rem;
+  }
+  .dress-silhouette {
+    grid-column: 1;
+    grid-row: 1 / 3;
+    align-self: center;
+    width: 165px;
+    height: 236px;
+    margin: 0;
+  }
+  .dress-card-gender { grid-column: 2; grid-row: 1; align-self: end; }
+  .dress-card-items  { grid-column: 2; grid-row: 2; align-self: start; }
 }

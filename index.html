@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Estiven & Johana · 13 de Marzo 2026</title>
+<title>Estiven & Johana · 13 de Marzo 2027</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400;1,700&family=Jost:wght@200;300;400;500&family=Great+Vibes&display=swap" rel="stylesheet"/>
@@ -25,7 +25,7 @@
 <!-- ============================================================
      ENVELOPE SCREEN
      ============================================================ -->
-<div id="envelope-screen">
+<div id="envelope-screen" data-env-state="closed">
   <!-- partículas bokeh flotantes -->
   <div class="env-particles" aria-hidden="true">
     <span class="env-particle" style="width:5px;height:5px;left:12%;top:70%;--dur:11s;--delay:-1s"></span>
@@ -42,18 +42,30 @@
   <div class="env-branding" aria-hidden="true">
     <p class="env-branding-names">Estiven &amp; Johana</p>
     <span class="env-branding-sep"></span>
-    <p class="env-branding-date">13 · Marzo · 2026</p>
+    <p class="env-branding-date">13 · Marzo · 2027</p>
   </div>
 
-  <div class="env-wrapper" id="env-wrapper">
+  <div class="env-wrapper" id="env-wrapper"
+       role="button" tabindex="0" aria-expanded="false"
+       aria-controls="main-content"
+       aria-label="Abrir la invitación de Estiven y Johana">
     <div class="env-ground" aria-hidden="true"></div>
     <div class="env-scene">
       <div class="env-body" id="env-body">
-        <div class="env-back"></div>
-        <div class="env-face"></div>
-        <div class="env-fold-left"></div>
-        <div class="env-fold-right"></div>
-        <div class="env-fold-bottom"></div>
+        <div class="env-back" aria-hidden="true"></div>
+        <!-- La carta va ANTES de la cara: vive dentro del sobre y sólo
+             se ve cuando cruza el borde superior (y=0). Ver z-index. -->
+        <div class="env-letter" id="env-letter">
+          <p class="env-letter-eyebrow">Invitación especial para</p>
+          <p class="env-letter-name" id="guest-name-letter">Estimado invitado</p>
+          <div class="env-letter-divider" aria-hidden="true"></div>
+          <p class="env-letter-sub" id="guest-slots-letter"></p>
+        </div>
+        <div class="env-face" aria-hidden="true"></div>
+        <div class="env-fold-left" aria-hidden="true"></div>
+        <div class="env-fold-right" aria-hidden="true"></div>
+        <div class="env-fold-bottom" aria-hidden="true"></div>
+        <div class="env-mouth" aria-hidden="true"></div>
         <div class="env-open-shade" aria-hidden="true"></div>
         <div class="env-flap" id="env-flap">
           <div class="env-flap-seg" id="env-flap-seg2">
@@ -86,12 +98,6 @@
           </svg>
         </div>
         <p class="env-address" id="guest-name-envelope">Estimado invitado</p>
-        <div class="env-letter" id="env-letter">
-          <p class="env-letter-eyebrow">Invitación especial para</p>
-          <p class="env-letter-name" id="guest-name-letter">Estimado invitado</p>
-          <div class="env-letter-divider" aria-hidden="true"></div>
-          <p class="env-letter-sub" id="guest-slots-letter"></p>
-        </div>
       </div>
     </div>
   </div>
@@ -120,7 +126,7 @@
         Estiven<span class="amp">&amp;</span>Johana
       </h1>
       <div class="hero-divider"></div>
-      <p class="hero-date">13 · Marzo · 2026</p>
+      <p class="hero-date">13 · Marzo · 2027</p>
     </div>
     <div class="hero-scroll-hint" aria-hidden="true">
       <svg viewBox="0 0 24 14" width="24" height="14" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -154,7 +160,7 @@
         <circle cx="150" cy="27" r="1.9" fill="#3A4225"/>
       </svg>
     </div>
-    <p class="section-eyebrow reveal">13 de Marzo, 2026</p>
+    <p class="section-eyebrow reveal">13 de Marzo, 2027</p>
     <h2 class="section-title reveal">Acompáñanos a celebrar<br/>nuestra boda</h2>
     <p class="section-sub reveal">San José, Costa Rica</p>
 
@@ -192,6 +198,12 @@
       </div>
       <div class="photo-3">
         <img src="images/5.jpeg" alt="Foto 3" onerror="this.style.background='#8A9A5B'"/>
+      </div>
+      <div class="photo-4">
+        <img src="images/4.jpeg" alt="Foto 3" onerror="this.style.background='#8A9A5B'"/>
+      </div>
+      <div class="photo-5">
+        <img src="images/7.jpeg" alt="Foto 3" onerror="this.style.background='#8A9A5B'"/>
       </div>
     </div>
   </section>
@@ -280,12 +292,7 @@
       <div class="gift-card reveal">
         <div class="gift-card-icon"><i class="ph-thin ph-device-mobile"></i></div>
         <p class="gift-card-label">Sinpe Móvil</p>
-        <p class="gift-card-value">8888-0000</p><!-- Actualizar número -->
-      </div>
-      <div class="gift-card reveal">
-        <div class="gift-card-icon"><i class="ph-thin ph-bank"></i></div>
-        <p class="gift-card-label">Transferencia</p>
-        <p class="gift-card-value">CR·····</p><!-- Actualizar IBAN -->
+        <p class="gift-card-value">6180 9767</p><!-- Actualizar número -->
       </div>
       <div class="gift-card reveal">
         <div class="gift-card-icon"><i class="ph-thin ph-airplane-takeoff"></i></div>
@@ -361,7 +368,7 @@
     <p class="section-eyebrow reveal">Confirmación</p>
     <h2 class="section-title reveal">Confirma tu asistencia</h2>
     <p class="section-sub reveal">
-      Por favor confirmanos antes del 1 de febrero de 2026
+      Por favor confirmanos antes del 1 de febrero de 2027
     </p>
 
     <div class="rsvp-form">
@@ -444,7 +451,7 @@
       </svg>
     </div>
     <p class="footer-names">Estiven &amp; Johana</p>
-    <p class="footer-date">13 · Marzo · 2026</p>
+    <p class="footer-date">13 · Marzo · 2027</p>
     <p class="footer-note">Con amor · San José, Costa Rica</p>
   </footer>
 
@@ -457,7 +464,11 @@
 // ============================================================
 // CONFIG — editar aquí
 // ============================================================
-const WEDDING_DATE = new Date('2026-03-13T10:00:00');
+// Instante exacto de la ceremonia, anclado a la zona horaria de Costa
+// Rica (UTC−6, sin horario de verano). Sin el offset, la cadena se
+// interpreta en la zona horaria de CADA invitado: quien abra la
+// invitación desde España vería una cuenta atrás desfasada 8 horas.
+const WEDDING_DATE = new Date('2027-03-13T10:00:00-06:00');
 
 // URL de tu Google Apps Script Web App para recibir RSVPs
 // Instrucciones al final del archivo
@@ -532,13 +543,19 @@ function loadGuest() {
 // ============================================================
 // ENVELOPE ANIMATION — GSAP
 // ============================================================
+const envScreen    = document.getElementById('envelope-screen');
 const envWrapper   = document.getElementById('env-wrapper');
 const envSeal      = document.getElementById('env-seal');
 const envFlap      = document.getElementById('env-flap');
 const envLetter    = document.getElementById('env-letter');
 const envHint      = document.getElementById('env-hint');
 
-let envelopeOpened = false;
+// Máquina de estados explícita: CLOSED → OPENING → OPENED.
+// Cualquier intento de abrir que no venga de CLOSED se ignora, así
+// que doble tap, tap-durante-animación o Enter repetido no pueden
+// dejar la invitación en un estado intermedio.
+const ENV_CLOSED = 'closed', ENV_OPENING = 'opening', ENV_OPENED = 'opened';
+let envState = ENV_CLOSED;
 
 const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 // GSAP se carga con defer, así que NO existe mientras se parsea este script.
@@ -551,127 +568,144 @@ const animateable = () => !prefersReducedMotion && gsapReady();
 const envBody = document.getElementById('env-body');
 const hasFinePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
-// En mobile (sin puntero fino): balanceo 3D idle, como si el sobre flotara.
-// Arranca en DOMContentLoaded, cuando los scripts defer ya se ejecutaron.
+// Idle: balanceo 3D muy leve, como si el sobre flotara. Corre en todos
+// los dispositivos; en punteros finos se cede el control al tilt en
+// cuanto el usuario mueve el ratón sobre el sobre.
+// (La "respiración" vertical la lleva CSS sobre .env-scene, así que
+//  GSAP y CSS nunca tocan el mismo transform.)
 let idleSway = null;
 window.addEventListener('DOMContentLoaded', () => {
-  if (envelopeOpened || hasFinePointer || !animateable()) return;
+  // Bloquea el scroll del documento detrás de la capa del sobre.
+  // Se hace desde JS para que sin JS la página siga siendo navegable.
+  document.body.classList.add('env-locked');
+
+  if (envState !== ENV_CLOSED || !animateable()) return;
   idleSway = gsap.timeline({ repeat: -1, yoyo: true })
-    .to(envBody, { rotationY: 4, rotationX: -2.5, duration: 2.6, ease: 'sine.inOut' })
-    .to(envBody, { rotationY: -4, rotationX: 1.5, duration: 2.6, ease: 'sine.inOut' });
+    .to(envBody, { rotationY: 3, rotationX: -1.8, duration: 3.2, ease: 'sine.inOut' })
+    .to(envBody, { rotationY: -3, rotationX: 1.2, duration: 3.2, ease: 'sine.inOut' });
 });
+
+function killIdleSway() {
+  if (idleSway) { idleSway.kill(); idleSway = null; }
+}
 
 // Feedback táctil al presionar (mobile y desktop)
 envWrapper.addEventListener('pointerdown', () => {
-  if (envelopeOpened || !animateable()) return;
-  gsap.to(envWrapper, { scale: 0.975, duration: 0.15, ease: 'power2.out' });
+  if (envState !== ENV_CLOSED || !animateable()) return;
+  gsap.to(envWrapper, { scale: 0.982, duration: 0.14, ease: 'power2.out' });
 });
-envWrapper.addEventListener('pointerup', () => {
-  if (envelopeOpened || !animateable()) return;
-  gsap.to(envWrapper, { scale: 1, duration: 0.25, ease: 'power2.out' });
+['pointerup', 'pointercancel', 'pointerleave'].forEach(evt => {
+  envWrapper.addEventListener(evt, () => {
+    if (envState !== ENV_CLOSED || !animateable()) return;
+    gsap.to(envWrapper, { scale: 1, duration: 0.26, ease: 'power2.out' });
+  });
 });
 
 if (hasFinePointer) {
   envWrapper.addEventListener('pointermove', (e) => {
-    if (envelopeOpened || !animateable()) return;
+    if (envState !== ENV_CLOSED || !animateable()) return;
+    killIdleSway();
     const rect = envWrapper.getBoundingClientRect();
     const px = (e.clientX - rect.left) / rect.width  - 0.5;
     const py = (e.clientY - rect.top)  / rect.height - 0.5;
-    gsap.to(envBody, { rotationY: px * 10, rotationX: -py * 8, duration: 0.5, ease: 'power2.out' });
+    gsap.to(envBody, { rotationY: px * 9, rotationX: -py * 7, duration: 0.55, ease: 'power2.out' });
   });
   envWrapper.addEventListener('pointerleave', () => {
-    if (envelopeOpened || !animateable()) return;
-    gsap.to(envBody, { rotationY: 0, rotationX: 0, duration: 0.7, ease: 'power2.out' });
+    if (envState !== ENV_CLOSED || !animateable()) return;
+    gsap.to(envBody, { rotationY: 0, rotationX: 0, duration: 0.8, ease: 'power2.out' });
   });
 }
 
-envWrapper.addEventListener('click', () => {
-  if (envelopeOpened) return;
-  envelopeOpened = true;
+// El sobre es un control: click, touch y teclado abren igual.
+envWrapper.addEventListener('click', openEnvelope);
+envWrapper.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+    e.preventDefault();          // Espacio no debe scrollear
+    openEnvelope();
+  }
+});
+
+function openEnvelope() {
+  if (envState !== ENV_CLOSED) return;
+  envState = ENV_OPENING;
+  envScreen.dataset.envState = ENV_OPENING;
+  envWrapper.setAttribute('aria-expanded', 'true');
   tryStartAudio();
 
-  // Sin GSAP o con reduced-motion: revelado instantáneo — el invitado
-  // nunca debe quedar atascado en el sobre
+  // Red de seguridad: pase lo que pase (pestaña en segundo plano,
+  // GSAP a medias), el invitado nunca se queda encerrado en el sobre.
+  const watchdog = setTimeout(revealMainContent, 6000);
+  const finish   = () => { clearTimeout(watchdog); revealMainContent(); };
+
+  // Sin GSAP o con reduced-motion: apertura simplificada por CSS.
   if (!animateable()) {
-    document.getElementById('envelope-screen').classList.add('hidden');
-    const main = document.getElementById('main-content');
-    main.classList.add('visible');
-    main.style.opacity = '1';
+    envScreen.classList.add('env-fallback');
+    setTimeout(finish, prefersReducedMotion ? 320 : 1250);
     return;
   }
 
-  if (idleSway) { idleSway.kill(); idleSway = null; }
-  gsap.to(envBody, { rotationX: 0, rotationY: 0, duration: 0.3, ease: 'power2.out' });
+  killIdleSway();
+  gsap.to(envBody, { rotationX: 0, rotationY: 0, duration: 0.35, ease: 'power2.out' });
 
-  const tl = gsap.timeline();
+  // ── Coreografía. Una sola secuencia: cada beat prepara el siguiente.
+  //    Duración total ≈ 2.7s; la carta está fuera a los ~1.75s.
+  const tl = gsap.timeline({ defaults: { overwrite: 'auto' } });
 
-  // 1. Pulso de click en el sello
-  tl.to(envSeal, {
-    scale: 0.92, duration: 0.12, ease: 'power1.in'
-  })
-  // 2. Sello desaparece
-  .to(envSeal, {
-    opacity: 0, scale: 0.6, duration: 0.4, ease: 'power2.in'
-  })
-  // 3. Hint desaparece
-  .to(envHint, {
-    opacity: 0, duration: 0.3, ease: 'power1.out'
-  }, '<')
-  // 4. Flap se abre con curvatura de papel: segmentos en cascada
-  .to(envFlap, {
-    rotationX: -100,
-    duration: 0.9,
-    ease: 'power2.inOut',
-    transformOrigin: 'top center',
-    transformPerspective: 700
-  }, '-=0.15')
-  .to('#env-flap-seg2', {
-    rotationX: -52,
-    duration: 0.85,
-    ease: 'power2.inOut',
-    transformOrigin: 'top center'
-  }, '<0.07')
-  .to('#env-flap-seg3', {
-    rotationX: -38,
-    duration: 0.8,
-    ease: 'power2.out',
-    transformOrigin: 'top center'
-  }, '<0.07')
-  .to('.env-open-shade', {
-    opacity: 0,
-    duration: 0.7,
-    ease: 'power1.out'
-  }, '<-0.05')
-  // 5. Nombre del frente cede el protagonismo a la carta
-  .to(document.querySelector('.env-address'), {
-    opacity: 0, duration: 0.35, ease: 'power1.out'
-  }, '-=0.6')
-  // 6. Carta asciende
-  .to(envLetter, {
-    y: '-72%',
-    opacity: 1,
-    duration: 0.75,
-    ease: 'power2.out'
-  }, '-=0.4')
-  // 6. Zoom de entrada al sobre y transición al landing
-  .to(envWrapper, {
-    scale: 1.35,
-    duration: 0.55,
-    ease: 'power2.in'
-  }, '+=0.15')
-  .to(document.getElementById('envelope-screen'), {
-    opacity: 0,
-    duration: 0.45,
-    ease: 'power2.inOut',
-    onComplete: () => {
-      document.getElementById('envelope-screen').classList.add('hidden');
-      const main = document.getElementById('main-content');
-      main.classList.add('visible');
-      gsap.fromTo(main, { opacity: 0 }, { opacity: 1, duration: 0.6, ease: 'power2.out' });
-      heroIntro();
-    }
-  }, '-=0.2');
-});
+  // 1 · El lacre acusa la presión y cede
+  tl.to(envSeal, { scale: 0.9, y: 2, duration: 0.11, ease: 'power2.out' }, 0)
+    .to(envSeal, { opacity: 0, scale: 0.5, y: 10, rotation: -16,
+                   duration: 0.34, ease: 'power2.in' }, 0.11)
+    .to(envHint,     { opacity: 0, duration: 0.30, ease: 'power1.out' }, 0.05)
+    .to('.env-branding', { opacity: 0.3, duration: 0.7, ease: 'power1.out' }, 0.05)
+
+  // 2 · La solapa se abre desde su bisagra real (borde superior).
+  //     Las 3 bandas van con retardo: el papel se curva y "late".
+    .to(envFlap,          { rotationX: -148, duration: 0.70, ease: 'power2.inOut' }, 0.20)
+    .to('#env-flap-seg2', { rotationX:  -22, duration: 0.52, ease: 'power2.out'   }, 0.28)
+    .to('#env-flap-seg3', { rotationX:  -18, duration: 0.50, ease: 'power2.out'   }, 0.35)
+    .to('#env-flap-seg2', { rotationX:  -10, duration: 0.34, ease: 'sine.out'     }, 0.80)
+    .to('#env-flap-seg3', { rotationX:   -8, duration: 0.34, ease: 'sine.out'     }, 0.85)
+
+  // 3 · Entra la luz en el interior y aparece la sombra de la boca
+    .to('.env-open-shade', { opacity: 0, duration: 0.60, ease: 'power1.out' }, 0.26)
+    .to('.env-mouth',      { opacity: 1, duration: 0.45, ease: 'power1.out' }, 0.50)
+    .to('.env-address',    { opacity: 0, duration: 0.35, ease: 'power1.out' }, 0.50)
+
+  // 4 · Pausa de ~0.22s: el ojo llega a leer el sobre abierto (el
+  //     forro del interior) antes de que la carta lo tape. Luego la
+  //     carta asciende y sale por la boca.
+  //     yPercent (no y:'%') para que sobreviva a un resize a media
+  //     animación: GSAP lo recalcula sobre la altura real cada frame.
+    .to(envLetter, { yPercent: -78, scale: 1.03,
+                     duration: 0.74, ease: 'power3.out' }, 1.12)
+    .to('.env-ground', { scaleX: 1.07, opacity: 0.72,
+                         duration: 0.85, ease: 'power2.out' }, 1.12)
+  // 5 · Micro-asentamiento del papel (inercia, no rebote)
+    .to(envLetter, { yPercent: -76.6, duration: 0.26, ease: 'sine.inOut' }, 1.86)
+
+  // 6 · El sobre cede el protagonismo y se funde al landing
+    .to(envWrapper, { scale: 1.26, duration: 0.46, ease: 'power2.in' }, 2.18)
+    .to(envScreen,  { opacity: 0, duration: 0.40, ease: 'power2.inOut',
+                      onComplete: finish }, 2.44);
+}
+
+function revealMainContent() {
+  if (envState === ENV_OPENED) return;
+  envState = ENV_OPENED;
+  envScreen.dataset.envState = ENV_OPENED;
+  envScreen.classList.add('hidden');
+  envWrapper.setAttribute('tabindex', '-1');
+  document.body.classList.remove('env-locked');
+
+  const main = document.getElementById('main-content');
+  main.classList.add('visible');
+  if (animateable()) {
+    gsap.fromTo(main, { opacity: 0 }, { opacity: 1, duration: 0.6, ease: 'power2.out' });
+    heroIntro();
+  } else {
+    main.style.opacity = '1';
+  }
+}
 
 // Entrada orquestada del hero tras abrir el sobre
 function heroIntro() {
@@ -680,20 +714,6 @@ function heroIntro() {
     { y: 26, opacity: 0 },
     { y: 0, opacity: 1, duration: 0.9, stagger: 0.16, ease: 'power3.out', delay: 0.15 }
   );
-}
-
-function finishEnvelope() {
-  const screen = document.getElementById('envelope-screen');
-  const main   = document.getElementById('main-content');
-
-  gsap.to(screen, {
-    opacity: 0, duration: 0.6, ease: 'power2.inOut',
-    onComplete: () => { screen.classList.add('hidden'); }
-  });
-  gsap.to(main, {
-    opacity: 1, duration: 0.7, delay: 0.2, ease: 'power2.out',
-    onStart: () => { main.classList.add('visible'); }
-  });
 }
 
 // ============================================================
@@ -730,28 +750,53 @@ musicBtn.addEventListener('click', () => {
 // ============================================================
 // COUNTDOWN
 // ============================================================
+let countdownTimer = null;
+
 function startCountdown() {
+  const cdDays  = document.getElementById('cd-days');
+  const cdHours = document.getElementById('cd-hours');
+  const cdMins  = document.getElementById('cd-mins');
+  const cdSecs  = document.getElementById('cd-secs');
+
+  if (Number.isNaN(WEDDING_DATE.getTime())) {
+    console.warn('WEDDING_DATE no es una fecha válida:', WEDDING_DATE);
+    return;
+  }
+
+  function paint(d, h, m, s) {
+    cdDays.textContent  = String(d).padStart(2, '0');
+    cdHours.textContent = String(h).padStart(2, '0');
+    cdMins.textContent  = String(m).padStart(2, '0');
+    cdSecs.textContent  = String(s).padStart(2, '0');
+  }
+
   function tick() {
-    const now = new Date();
-    const diff = WEDDING_DATE - now;
+    const diff = WEDDING_DATE.getTime() - Date.now();
+
+    // Llegó el día: deja el contador en ceros y se detiene solo.
+    // El setInterval anterior seguía disparando para siempre.
     if (diff <= 0) {
-      document.getElementById('cd-days').textContent  = '00';
-      document.getElementById('cd-hours').textContent = '00';
-      document.getElementById('cd-mins').textContent  = '00';
-      document.getElementById('cd-secs').textContent  = '00';
+      paint(0, 0, 0, 0);
+      countdownTimer = null;
       return;
     }
-    const d = Math.floor(diff / 86400000);
-    const h = Math.floor((diff % 86400000) / 3600000);
-    const m = Math.floor((diff % 3600000)  / 60000);
-    const s = Math.floor((diff % 60000)    / 1000);
-    document.getElementById('cd-days').textContent  = String(d).padStart(2,'0');
-    document.getElementById('cd-hours').textContent = String(h).padStart(2,'0');
-    document.getElementById('cd-mins').textContent  = String(m).padStart(2,'0');
-    document.getElementById('cd-secs').textContent  = String(s).padStart(2,'0');
+
+    paint(
+      Math.floor(diff / 86400000),
+      Math.floor(diff / 3600000) % 24,
+      Math.floor(diff / 60000)   % 60,
+      Math.floor(diff / 1000)    % 60
+    );
+
+    // Se reprograma alineado al siguiente segundo exacto en vez de usar
+    // setInterval(tick, 1000): el intervalo fijo acumula deriva y hace
+    // que el contador salte o repita segundos a la vista. Además, cada
+    // tick recalcula desde Date.now(), así que volver de una pestaña en
+    // segundo plano no descuadra nada.
+    countdownTimer = setTimeout(tick, 1000 - (Date.now() % 1000) + 20);
   }
+
   tick();
-  setInterval(tick, 1000);
 }
 
 // ============================================================
