@@ -208,23 +208,6 @@
     </div>
   </section>
 
-  <!-- VIDEO -->
-  <section class="section-video">
-    <div class="video-frame reveal">
-      <video class="video-player" id="wedding-video"
-             src="video.mp4"
-             muted loop playsinline preload="metadata"
-             disablepictureinpicture
-             aria-label="Video de Estiven y Johana"></video>
-      <button class="video-play" id="video-play" type="button" hidden
-              aria-label="Reproducir el video">
-        <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-          <path d="M8 5.5v13l11-6.5z" fill="currentColor"/>
-        </svg>
-      </button>
-    </div>
-  </section>
-
   <!-- CEREMONIA -->
   <section class="section-event">
     <div class="event-icon reveal"><i class="ph-thin ph-church" aria-hidden="true"></i></div>
@@ -513,11 +496,10 @@ const musicBtn    = document.getElementById('music-btn');
 // ============================================================
 window.addEventListener('DOMContentLoaded', async () => {
   // Van primero: no dependen de la red, y asi un fallo o una
-  // demora de loadInvitados no deja la pagina sin contador,
-  // sin animaciones de scroll ni sin video.
+  // demora de loadInvitados no deja la pagina sin contador ni
+  // sin animaciones de scroll.
   startCountdown();
   initScrollReveal();
-  initVideo();
 
   await loadInvitados();
   loadGuest();
@@ -829,62 +811,6 @@ function initScrollReveal() {
     entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); });
   }, { threshold: 0.12 });
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-}
-
-// ============================================================
-// VIDEO — se reproduce al entrar en pantalla
-// El clip no tiene pista de audio y ademas va con muted, asi que
-// no puede pisar la cancion de fondo. muted tambien es lo que
-// permite el autoplay: los navegadores lo exigen aunque el
-// archivo no traiga sonido.
-// ============================================================
-function initVideo() {
-  const video   = document.getElementById('wedding-video');
-  const playBtn = document.getElementById('video-play');
-  if (!video || !playBtn) return;
-
-  video.muted = true;           // por si el atributo se pierde
-  video.volume = 0;
-
-  const mostrarBoton = () => { playBtn.hidden = false; };
-  const reproducir = () => {
-    const p = video.play();
-    if (p && typeof p.catch === 'function') {
-      p.then(() => { playBtn.hidden = true; }).catch(mostrarBoton);
-    }
-  };
-
-  playBtn.addEventListener('click', () => { playBtn.hidden = true; reproducir(); });
-
-  // Con reduced-motion no se reproduce solo: se dan los controles
-  // para que sea el invitado quien decida.
-  if (prefersReducedMotion) {
-    video.controls = true;
-    return;
-  }
-
-  if (!('IntersectionObserver' in window)) { mostrarBoton(); return; }
-
-  // Se va a "metadata" en el HTML para no descargar 1,7 MB a todos los
-  // invitados nada mas abrir. Cuando la seccion se acerca (una pantalla
-  // y media antes) se pasa a "auto": asi llega ya con buffer y arranca
-  // sin dejar un rectangulo vacio.
-  const precarga = new IntersectionObserver((entradas) => {
-    if (entradas.some(e => e.isIntersecting)) {
-      video.preload = 'auto';
-      video.load();
-      precarga.disconnect();
-    }
-  }, { rootMargin: '150% 0px' });
-  precarga.observe(video);
-
-  const io = new IntersectionObserver((entradas) => {
-    entradas.forEach(e => {
-      if (e.isIntersecting) reproducir();
-      else if (!video.paused) video.pause();
-    });
-  }, { threshold: 0.35 });
-  io.observe(video);
 }
 
 // ============================================================

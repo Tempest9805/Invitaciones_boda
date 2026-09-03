@@ -1256,65 +1256,6 @@ body.env-locked { overflow: hidden; }
 }
 
 /* ============================================================
-   SECTION: VIDEO
-   Clip vertical 9:16 sin pista de audio. Se reproduce solo al
-   entrar en pantalla y se pausa al salir (bateria y datos).
-   ============================================================ */
-.section-video {
-  background: var(--olive-dark);
-  padding: 3rem 1.5rem;
-  display: grid;
-  place-items: center;
-}
-/* El archivo viene en lienzo vertical 576x1024, pero la imagen real
-   ocupa solo la franja 352-673: el resto son barras grises planas
-   (varianza 0) del exportado. El marco se recorta a esa franja y el
-   video se desplaza hacia arriba 352/1024 = 34.375% de su propio
-   alto, asi que en pantalla solo se ve el metraje. */
-.video-frame {
-  position: relative;
-  width: min(100%, 760px);
-  aspect-ratio: 576 / 321;
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid rgba(196,169,98,0.45);
-  box-shadow: 0 12px 36px rgba(0,0,0,0.35);
-  background: #14170d;
-}
-.video-player {
-  position: absolute;
-  top: 0;
-  left: 0;
-  display: block;
-  width: 100%;
-  height: auto;                    /* conserva la proporcion del archivo */
-  transform: translateY(-34.375%); /* recorta las barras */
-}
-/* Solo aparece si el navegador rechaza la reproduccion automatica
-   (modo de ahorro de bateria, ahorro de datos...). */
-.video-play {
-  position: absolute;
-  inset: 0;
-  margin: auto;
-  width: 64px;
-  height: 64px;
-  display: grid;
-  place-items: center;
-  border: 1px solid var(--gold);
-  border-radius: 50%;
-  background: rgba(58,66,37,0.72);
-  color: var(--gold);
-  cursor: pointer;
-  padding-left: 3px;
-}
-/* [hidden] pone display:none desde la hoja del navegador, pero el
-   display:grid de arriba le gana por especificidad: sin esta regla
-   el boton se veria siempre, incluso con el autoplay funcionando. */
-.video-play[hidden] { display: none; }
-.video-play:hover { background: rgba(58,66,37,0.9); }
-.video-play:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
-
-/* ============================================================
    SECTION: RSVP
    ============================================================ */
 .section-rsvp {
