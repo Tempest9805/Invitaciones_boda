@@ -192,11 +192,44 @@ function fixBusetaHeaderStyle() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('RSVPs');
   if (!sheet) return;
 
-  const lastCol = sheet.getLastColumn();
-  if (lastCol < 2) return;
+  const scanRows = Math.min(6, sheet.getLastRow());
+  const grid = sheet.getRange(1, 1, scanRows, sheet.getLastColumn()).getValues();
 
-  sheet.getRange(1, lastCol - 1).copyFormatToRange(sheet, lastCol, lastCol, 1, 1);
-  console.log('✅ Estilo de cabecera corregido en RSVPs (columna ' + lastCol + ')');
+  // Localiza la etiqueta "Mensaje..." en las primeras filas en vez de dar
+  // por hecho que la cabecera es la fila 1. La hoja tiene una banda de
+  // título ENCIMA de las etiquetas, y copiar el formato de una celda de
+  // esa banda (que está combinada) arrastraría la combinación a la
+  // columna nueva y descuadraría la tabla.
+  let hRow = -1, mCol = -1;
+  for (let r = 0; r < grid.length && hRow === -1; r++) {
+    for (let c = 0; c < grid[r].length; c++) {
+      if (String(grid[r][c]).trim().toUpperCase().indexOf('MENSAJE') === 0) {
+        hRow = r + 1;
+        mCol = c + 1;
+        break;
+      }
+    }
+  }
+  if (hRow === -1) {
+    console.error('❌ No se encontró la cabecera "Mensaje...". Revisa la hoja RSVPs.');
+    return;
+  }
+
+  const bCol = mCol + 1;
+
+  // Si la etiqueta quedó escrita en otra fila (la primera versión la
+  // escribía siempre en la fila 1, que aquí es la banda de título), se
+  // limpia para no dejar texto suelto fuera de la cabecera.
+  for (let r = 1; r <= scanRows; r++) {
+    if (r === hRow) continue;
+    const cell = sheet.getRange(r, bCol);
+    if (String(cell.getValue()).trim() === 'Requiere buseta') cell.clearContent();
+  }
+
+  sheet.getRange(hRow, mCol).copyFormatToRange(sheet, bCol, bCol, hRow, hRow);
+  sheet.getRange(hRow, bCol).setValue('Requiere buseta');
+
+  console.log('✅ Cabecera "Requiere buseta" corregida — fila ' + hRow + ', columna ' + bCol);
 }
 
 // ============================================================
@@ -258,7 +291,23 @@ function ocultarColumnasAutoInvitados() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(INV_SHEET_NAME);
   if (!sheet) return;
 
-  const INV_COL_LINK = 4; // D
-  sheet.hideColumns(INV_COL_LINK, 2); // D:E (LINK y JSON)
-  console.log('✅ Columnas LINK y JSON ocultas en Invitados');
+  // Se buscan por TÍTULO y no por letra fija (D y E): si algún día se
+  // reordenan o se inserta una columna, esto sigue ocultando las
+  // correctas en vez de esconder datos que sí hay que ver.
+  const titulos = sheet.getRange(INV_HEADER_ROW, 1, 1, sheet.getLastColumn()).getValues()[0];
+  let ocultadas = 0;
+
+  titulos.forEach((titulo, i) => {
+    const t = String(titulo).toUpperCase();
+    if (t.indexOf('LINK') !== -1 || t.indexOf('JSON') !== -1) {
+      sheet.hideColumns(i + 1);
+      ocultadas++;
+    }
+  });
+
+  if (ocultadas) {
+    console.log('✅ ' + ocultadas + ' columna(s) automáticas ocultas en Invitados');
+  } else {
+    console.error('❌ No se encontraron columnas LINK/JSON en la fila ' + INV_HEADER_ROW);
+  }
 }
