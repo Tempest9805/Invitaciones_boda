@@ -13,6 +13,49 @@ const JSON_FILE     = 'invitados.json';
 // ────────────────────────────────────────────────────────────
 
 // ============================================================
+// 0. CONFIGURACIÓN INICIAL — ⭐ LA ÚNICA QUE HAY QUE EJECUTAR
+// Ejecutar → configurarTodo  (una sola vez, tras pegar el código)
+//
+// En Apps Script el botón ▶ corre UNA función, no el archivo entero.
+// Esta agrupa todos los ajustes de un solo uso para no tener que
+// ejecutarlos por separado. Es idempotente: correrla dos veces no
+// hace daño.
+//
+// NO ejecutar a mano: doPost, onEdit y pushToGitHub esperan
+// parámetros (una petición HTTP o un evento de edición) y fallan si
+// se lanzan sueltas desde el editor. Se llaman solas cuando toca.
+// ============================================================
+function configurarTodo() {
+  const resultados = [];
+
+  try {
+    fixBusetaHeaderStyle();
+    resultados.push('cabecera RSVPs: OK');
+  } catch (err) {
+    resultados.push('cabecera RSVPs: FALLÓ — ' + err.message);
+  }
+
+  try {
+    ocultarColumnasAutoInvitados();
+    resultados.push('columnas LINK/JSON: OK');
+  } catch (err) {
+    resultados.push('columnas LINK/JSON: FALLÓ — ' + err.message);
+  }
+
+  try {
+    crearTrigger();
+    resultados.push('trigger de sync: OK');
+  } catch (err) {
+    resultados.push('trigger de sync: FALLÓ — ' + err.message);
+  }
+
+  console.log('──────── RESUMEN ────────');
+  resultados.forEach(r => console.log('• ' + r));
+  console.log('El reset de acompañantes (onEdit) no aparece aquí:');
+  console.log('se activa solo al guardar, no hay que ejecutarlo.');
+}
+
+// ============================================================
 // 1. RECIBIR RSVP DESDE EL FORMULARIO WEB
 // ============================================================
 // ⚠️ "Requiere buseta" va AL FINAL a propósito. Si se insertara en
