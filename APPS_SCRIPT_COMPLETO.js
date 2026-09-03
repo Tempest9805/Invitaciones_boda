@@ -36,10 +36,10 @@ function configurarTodo() {
   }
 
   try {
-    ocultarColumnasAutoInvitados();
-    resultados.push('columnas LINK/JSON: OK');
+    ajustarColumnasInvitados();
+    resultados.push('columnas automáticas: OK');
   } catch (err) {
-    resultados.push('columnas LINK/JSON: FALLÓ — ' + err.message);
+    resultados.push('columnas automáticas: FALLÓ — ' + err.message);
   }
 
   try {
@@ -322,35 +322,71 @@ function onEdit(e) {
 }
 
 // ============================================================
-// 7. OCULTAR COLUMNAS AUTOMÁTICAS (LINK y JSON) EN "Invitados"
-// Ejecutar UNA SOLA VEZ: Ejecutar → ocultarColumnasAutoInvitados
-// Son fórmulas (ver APPS_SCRIPT_README.txt) — ocultar la columna NO
-// detiene su cálculo, sólo deja de mostrarla, así que el link de
-// WhatsApp y el JSON se siguen generando exactamente igual.
-// Para volver a verlas: seleccionar las columnas vecinas (C y F) →
-// clic derecho → "Mostrar columnas D-E".
+// 7. COLUMNAS AUTOMÁTICAS DE "Invitados"
+//
+// Las tres columnas que la propia hoja marca como "(auto)" son
+// fórmulas: ID, LINK y JSON. Ninguna debe escribirse a mano, pero NO
+// se tratan igual:
+//
+//   • JSON  → se OCULTA. Sólo alimenta invitados.json, nadie lo lee.
+//   • LINK  → se DEJA VISIBLE. Es el enlace que hay que enviar por
+//             WhatsApp a cada invitado; ocultarlo dejaba sin
+//             herramienta a quien administra la lista.
+//   • ID    → se deja visible, sirve para identificar la fila.
+//
+// Las tres se PROTEGEN con aviso: si alguien intenta escribir encima
+// de la fórmula, Sheets avisa antes de romperla, pero se puede
+// continuar a propósito. Copiar el link no se ve afectado: la
+// protección limita la edición, no la lectura.
+//
+// Para revertir: Datos → Hojas y rangos protegidos (quitar), y
+// clic derecho sobre las columnas vecinas → Mostrar columnas.
 // ============================================================
-function ocultarColumnasAutoInvitados() {
+const INV_PROTECT_TAG = 'Columna automática (boda) — no editar';
+
+function ajustarColumnasInvitados() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(INV_SHEET_NAME);
   if (!sheet) return;
 
-  // Se buscan por TÍTULO y no por letra fija (D y E): si algún día se
-  // reordenan o se inserta una columna, esto sigue ocultando las
-  // correctas en vez de esconder datos que sí hay que ver.
-  const titulos = sheet.getRange(INV_HEADER_ROW, 1, 1, sheet.getLastColumn()).getValues()[0];
-  let ocultadas = 0;
-
-  titulos.forEach((titulo, i) => {
-    const t = String(titulo).toUpperCase();
-    if (t.indexOf('LINK') !== -1 || t.indexOf('JSON') !== -1) {
-      sheet.hideColumns(i + 1);
-      ocultadas++;
-    }
+  // Quitar las protecciones puestas por este script en corridas
+  // anteriores, para que ejecutarlo dos veces no las acumule.
+  sheet.getProtections(SpreadsheetApp.ProtectionType.RANGE).forEach(p => {
+    if (p.getDescription() === INV_PROTECT_TAG) p.remove();
   });
 
-  if (ocultadas) {
-    console.log('✅ ' + ocultadas + ' columna(s) automáticas ocultas en Invitados');
+  const titulos = sheet.getRange(INV_HEADER_ROW, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const maxRows = sheet.getMaxRows();
+  let ocultas = 0, visibles = 0, protegidas = 0;
+
+  titulos.forEach((titulo, i) => {
+    const t   = String(titulo).toUpperCase();
+    const col = i + 1;
+
+    // La hoja marca sus columnas calculadas con "(auto)" en el título.
+    if (t.indexOf('AUTO') === -1) return;
+
+    if (t.indexOf('JSON') !== -1) {
+      sheet.hideColumns(col);
+      ocultas++;
+    } else {
+      // LINK e ID: asegurar que quedan visibles aunque una corrida
+      // anterior las hubiera ocultado.
+      sheet.showColumns(col);
+      visibles++;
+    }
+
+    sheet.getRange(1, col, maxRows)
+         .protect()
+         .setDescription(INV_PROTECT_TAG)
+         .setWarningOnly(true);
+    protegidas++;
+  });
+
+  if (protegidas) {
+    console.log('✅ Invitados: ' + ocultas + ' oculta(s), ' + visibles +
+                ' visible(s), ' + protegidas + ' protegida(s) con aviso');
   } else {
-    console.error('❌ No se encontraron columnas LINK/JSON en la fila ' + INV_HEADER_ROW);
+    console.error('❌ No se encontraron columnas "(auto)" en la fila ' + INV_HEADER_ROW);
   }
 }
+
