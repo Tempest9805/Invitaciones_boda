@@ -37,9 +37,15 @@ function doPost(e) {
     } else if (sheet.getLastColumn() < RSVP_HEADERS.length) {
       // Hoja creada antes de existir la columna de buseta: se completa
       // la cabecera para que la columna nueva no quede sin título.
-      sheet.getRange(1, 1, 1, RSVP_HEADERS.length)
-           .setValues([RSVP_HEADERS])
-           .setFontWeight('bold');
+      const oldLastCol = sheet.getLastColumn();
+      const firstNewCol = oldLastCol + 1;
+      sheet.getRange(1, firstNewCol, 1, RSVP_HEADERS.length - oldLastCol)
+           .setValues([RSVP_HEADERS.slice(oldLastCol)]);
+      // Copia el FORMATO visual (fondo, color, negrita, bordes) de la
+      // última cabecera ya estilizada a mano, en vez de re-inventar los
+      // colores del tema — así la columna nueva se ve igual que las demás.
+      sheet.getRange(1, oldLastCol)
+           .copyFormatToRange(sheet, firstNewCol, RSVP_HEADERS.length, 1, 1);
     }
 
     const data = JSON.parse(e.postData.contents);
@@ -170,4 +176,89 @@ function crearTrigger() {
     .create();
 
   console.log('✅ Trigger creado — cada edición sincronizará con GitHub');
+}
+
+// ============================================================
+// 5. CORREGIR ESTILO DE LA CABECERA "Requiere buseta"
+// Ejecutar UNA SOLA VEZ desde el editor: Ejecutar → fixBusetaHeaderStyle
+// La columna se creó automáticamente la primera vez que llegó un RSVP
+// después de agregar el campo, y quedó en negrita simple en vez del
+// mismo fondo/color/bordes que el resto de la cabecera. Este fix copia
+// el formato de la cabecera vecina ("Mensaje para los novios") sobre
+// ella. A partir de ahora, si la cabecera se vuelve a crear desde cero
+// (sección 1), ya sale con el estilo correcto y este fix no hace falta.
+// ============================================================
+function fixBusetaHeaderStyle() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('RSVPs');
+  if (!sheet) return;
+
+  const lastCol = sheet.getLastColumn();
+  if (lastCol < 2) return;
+
+  sheet.getRange(1, lastCol - 1).copyFormatToRange(sheet, lastCol, lastCol, 1, 1);
+  console.log('✅ Estilo de cabecera corregido en RSVPs (columna ' + lastCol + ')');
+}
+
+// ============================================================
+// 6. INVITADOS EN VIVO — reset automático de acompañantes
+// Simple trigger: Google lo detecta por el nombre `onEdit` y lo
+// ejecuta solo con cada edición, sin necesidad de crearTrigger().
+// No requiere autorización porque sólo toca el propio Sheet (a
+// diferencia de syncInvitadosAGitHub, que sí necesita permiso porque
+// llama a la API de GitHub).
+//
+// Si se borra el Nombre (columna B) de un invitado, ya no tiene
+// sentido que conserve un número de acompañantes: se reinicia a 0
+// en el mismo instante, sin esperar a guardar ni recargar.
+// ============================================================
+const INV_SHEET_NAME = 'Invitados';
+const INV_COL_NOMBRE = 2; // B
+const INV_COL_ACOMP  = 3; // C
+const INV_HEADER_ROW = 3; // los datos empiezan en la fila 4
+
+function onEdit(e) {
+  try {
+    const sheet = e.range.getSheet();
+    if (sheet.getName() !== INV_SHEET_NAME) return;
+
+    const startCol = e.range.getColumn();
+    const endCol    = startCol + e.range.getNumColumns() - 1;
+    // Ignorar ediciones que no toquen la columna Nombre (permite
+    // borrar en bloque varias filas o columnas a la vez, no sólo
+    // una celda suelta).
+    if (INV_COL_NOMBRE < startCol || INV_COL_NOMBRE > endCol) return;
+
+    const startRow = e.range.getRow();
+    const numRows  = e.range.getNumRows();
+
+    for (let i = 0; i < numRows; i++) {
+      const row = startRow + i;
+      if (row <= INV_HEADER_ROW) continue; // no tocar la cabecera
+
+      const nombreCell = sheet.getRange(row, INV_COL_NOMBRE);
+      if (nombreCell.getValue() === '') {
+        sheet.getRange(row, INV_COL_ACOMP).setValue(0);
+      }
+    }
+  } catch (err) {
+    console.error('onEdit error:', err);
+  }
+}
+
+// ============================================================
+// 7. OCULTAR COLUMNAS AUTOMÁTICAS (LINK y JSON) EN "Invitados"
+// Ejecutar UNA SOLA VEZ: Ejecutar → ocultarColumnasAutoInvitados
+// Son fórmulas (ver APPS_SCRIPT_README.txt) — ocultar la columna NO
+// detiene su cálculo, sólo deja de mostrarla, así que el link de
+// WhatsApp y el JSON se siguen generando exactamente igual.
+// Para volver a verlas: seleccionar las columnas vecinas (C y F) →
+// clic derecho → "Mostrar columnas D-E".
+// ============================================================
+function ocultarColumnasAutoInvitados() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(INV_SHEET_NAME);
+  if (!sheet) return;
+
+  const INV_COL_LINK = 4; // D
+  sheet.hideColumns(INV_COL_LINK, 2); // D:E (LINK y JSON)
+  console.log('✅ Columnas LINK y JSON ocultas en Invitados');
 }
