@@ -39,12 +39,12 @@ Invitaciones_boda/
 |---|---------|-------------|
 | 1 | **Sobre animado** | Pantalla inicial con animación de sobre que se abre, sello tipo lacre con iniciales E&J, nombre del invitado y cupos disponibles |
 | 2 | **Hero** | Foto principal con nombres Estiven & Johana y fecha |
-| 3 | **Acompáñanos** | Flores animadas, título, subtítulo y contador regresivo (días, horas, min, seg) hasta el 13 de marzo 2026 |
+| 3 | **Acompáñanos** | Flores animadas, título, subtítulo y contador regresivo (días, horas, min, seg) hasta el 9 de enero 2027 |
 | 4 | **Foto 2** | Segunda foto de la pareja a ancho completo |
 | 5 | **Cita** | Frase romántica sobre fondo oscuro con comillas decorativas grandes |
 | 6 | **Álbum** | Grid de 3 fotos: una grande arriba, dos pequeñas abajo |
-| 7 | **Ceremonia** | Iglesia de San Isidro · 10:00 AM · botón Google Maps |
-| 8 | **Recepción** | Sala de Eventos El Higuerón · 12:00 PM · botón Google Maps |
+| 7 | **Ceremonia** | Iglesia de Rodríguez · 1:30 PM · botón Google Maps |
+| 8 | **Recepción** | Sala de Eventos El Higuerón · 3:00 PM · botón Google Maps |
 | 9 | **Itinerario** | Línea de tiempo vertical: Ceremonia → Recepción → Cena → Fiesta |
 | 10 | **Regalos** | Sugerencias: Sinpe Móvil, transferencia, fondo luna de miel |
 | 11 | **Dresscode** | Código de vestimenta hombres/mujeres + paleta de colores sugerida |
@@ -131,7 +131,7 @@ Todas las variables editables están al inicio del bloque `<script>`:
 
 ```javascript
 // Fecha de la boda para el contador
-const WEDDING_DATE = new Date('2026-03-13T10:00:00');
+const WEDDING_DATE = new Date('2027-01-09T13:30:00-06:00');
 
 // URL de la API de GitHub para cargar invitados
 const INVITADOS_JSON_URL =
@@ -192,4 +192,4 @@ El Apps Script sincroniza automáticamente con GitHub cada vez que se edita la h
 
 ---
 
-*Boda Estiven & Johana · 13 de Marzo 2026 · San Isidro, Costa Rica 🌿*
+*Boda Estiven & Johana · 9 de Enero 2027 · Grecia, Costa Rica 🌿*

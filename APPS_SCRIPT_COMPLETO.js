@@ -494,7 +494,7 @@ const WA_PAIS = '506'; // código de país sin el "+", Costa Rica
 // (falla con 'servidor no encontrado'). Ambos son equivalentes.
 const WA_URL_BASE = 'https://api.whatsapp.com/send?phone=';
 const WA_MENSAJE = '\u00a1Hola {NOMBRE}! \ud83d\udc8d Estiven y Johana te invitan a su boda ' +
-                   'el 13 de marzo de 2027. Esta es tu invitaci\u00f3n personal:';
+                   'el 9 de enero de 2027. Esta es tu invitaci\u00f3n personal:';
 
 // ------------------------------------------------------------
 // El separador de argumentos depende de la configuración regional de
