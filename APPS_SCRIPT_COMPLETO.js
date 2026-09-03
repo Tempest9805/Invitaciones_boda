@@ -43,6 +43,13 @@ function configurarTodo() {
   }
 
   try {
+    configurarColumnaWhatsApp();
+    resultados.push('columna WhatsApp: OK');
+  } catch (err) {
+    resultados.push('columna WhatsApp: FALLÓ — ' + err.message);
+  }
+
+  try {
     crearTrigger();
     resultados.push('trigger de sync: OK');
   } catch (err) {
@@ -205,21 +212,22 @@ function pushToGitHub(filename, content) {
 // Menú: Ejecutar → crearTrigger
 // ============================================================
 function crearTrigger() {
-  // Eliminar triggers anteriores del mismo tipo
+  // Limpiar triggers de versiones anteriores (el sync corría suelto).
   ScriptApp.getProjectTriggers().forEach(t => {
-    if (t.getHandlerFunction() === 'syncInvitadosAGitHub') {
+    const fn = t.getHandlerFunction();
+    if (fn === 'syncInvitadosAGitHub' || fn === 'alEditarInvitados') {
       ScriptApp.deleteTrigger(t);
     }
   });
 
-  // Crear trigger: se ejecuta al editar cualquier celda del Sheet
-  ScriptApp.newTrigger('syncInvitadosAGitHub')
+  ScriptApp.newTrigger('alEditarInvitados')
     .forSpreadsheet(SpreadsheetApp.getActive())
     .onEdit()
     .create();
 
-  console.log('✅ Trigger creado — cada edición sincronizará con GitHub');
+  console.log('✅ Trigger creado — confirmación de borrado + sync a GitHub');
 }
+
 
 // ============================================================
 // 5. CORREGIR ESTILO DE LA CABECERA "Requiere buseta"
@@ -276,48 +284,118 @@ function fixBusetaHeaderStyle() {
 }
 
 // ============================================================
-// 6. INVITADOS EN VIVO — reset automático de acompañantes
-// Simple trigger: Google lo detecta por el nombre `onEdit` y lo
-// ejecuta solo con cada edición, sin necesidad de crearTrigger().
-// No requiere autorización porque sólo toca el propio Sheet (a
-// diferencia de syncInvitadosAGitHub, que sí necesita permiso porque
-// llama a la API de GitHub).
+// 6. INVITADOS EN VIVO — confirmar borrado, resetear y sincronizar
 //
-// Si se borra el Nombre (columna B) de un invitado, ya no tiene
-// sentido que conserve un número de acompañantes: se reinicia a 0
-// en el mismo instante, sin esperar a guardar ni recargar.
+// Todo vive en UN solo handler instalado por crearTrigger(), y no en
+// un `onEdit` simple, por dos razones:
+//
+//   1. Un onEdit simple corre SIN autorización, así que no podría
+//      llamar a GitHub (UrlFetchApp) después de restaurar un nombre.
+//   2. Antes el sync corría en su propio trigger, EN PARALELO. Al
+//      pedir confirmación, el sync subía el borrado a GitHub mientras
+//      el diálogo seguía abierto; si luego se decía "No", el nombre
+//      volvía a la hoja pero en GitHub ya no estaba. Secuencial no
+//      puede pasar.
+//
+// Ojo: onEdit se dispara DESPUÉS de que la celda ya se borró — no
+// existe forma de cancelar la edición. Lo que se hace es preguntar y
+// volver a escribir el valor anterior si la respuesta es "No".
 // ============================================================
 const INV_SHEET_NAME = 'Invitados';
 const INV_COL_NOMBRE = 2; // B
 const INV_COL_ACOMP  = 3; // C
 const INV_HEADER_ROW = 3; // los datos empiezan en la fila 4
 
-function onEdit(e) {
+function alEditarInvitados(e) {
   try {
     const sheet = e.range.getSheet();
-    if (sheet.getName() !== INV_SHEET_NAME) return;
+    if (sheet.getName() !== INV_SHEET_NAME) {
+      return; // otras hojas no sincronizan ni resetean
+    }
 
-    const startCol = e.range.getColumn();
-    const endCol    = startCol + e.range.getNumColumns() - 1;
-    // Ignorar ediciones que no toquen la columna Nombre (permite
-    // borrar en bloque varias filas o columnas a la vez, no sólo
-    // una celda suelta).
-    if (INV_COL_NOMBRE < startCol || INV_COL_NOMBRE > endCol) return;
+    const filaIni = e.range.getRow();
+    const nFilas  = e.range.getNumRows();
+    const colIni  = e.range.getColumn();
+    const colFin  = colIni + e.range.getNumColumns() - 1;
+    const tocaNombre = (INV_COL_NOMBRE >= colIni && INV_COL_NOMBRE <= colFin);
 
-    const startRow = e.range.getRow();
-    const numRows  = e.range.getNumRows();
+    if (tocaNombre) {
+      // ── Caso 1: una sola celda. Hay e.oldValue, así que se puede
+      //    preguntar y deshacer.
+      if (nFilas === 1 && e.range.getNumColumns() === 1 && filaIni > INV_HEADER_ROW) {
+        const ahora  = String(e.range.getValue()).trim();
+        const antes  = (e.oldValue === undefined) ? '' : String(e.oldValue).trim();
 
-    for (let i = 0; i < numRows; i++) {
-      const row = startRow + i;
-      if (row <= INV_HEADER_ROW) continue; // no tocar la cabecera
+        if (ahora === '' && antes !== '') {
+          if (!confirmarBorrado(antes)) {
+            e.range.setValue(e.oldValue); // restaurar
+            sincronizarSiCorresponde();   // GitHub queda coherente
+            return;
+          }
+        }
+      }
 
-      const nombreCell = sheet.getRange(row, INV_COL_NOMBRE);
-      if (nombreCell.getValue() === '') {
-        sheet.getRange(row, INV_COL_ACOMP).setValue(0);
+      // ── Caso 2: borrado en bloque. Sin e.oldValue no hay forma
+      //    fiable de restaurar, así que no se pregunta: se avisa y
+      //    queda Ctrl+Z como salida.
+      if (nFilas > 1) {
+        avisar('Se editaron ' + nFilas + ' filas de golpe. ' +
+               'Si fue sin querer, usa Ctrl+Z para deshacer.');
+      }
+
+      // Reset de acompañantes en las filas que quedaron sin nombre
+      for (let i = 0; i < nFilas; i++) {
+        const fila = filaIni + i;
+        if (fila <= INV_HEADER_ROW) continue;
+        if (String(sheet.getRange(fila, INV_COL_NOMBRE).getValue()).trim() === '') {
+          sheet.getRange(fila, INV_COL_ACOMP).setValue(0);
+        }
       }
     }
+
+    // Sólo sincronizar si cambió algo que viaje en el JSON (ID, Nombre
+    // o Acompañantes). Antes subía a GitHub en CADA celda editada:
+    // llenar la lista generaba cientos de commits y consumía la cuota
+    // diaria de triggers.
+    if (colIni <= INV_COL_ACOMP) {
+      sincronizarSiCorresponde();
+    }
   } catch (err) {
-    console.error('onEdit error:', err);
+    console.error('alEditarInvitados error:', err);
+  }
+}
+
+// Diálogo de confirmación. Si no hay interfaz disponible (el trigger
+// corrió sin una ventana abierta), devuelve true para no bloquear.
+function confirmarBorrado(nombre) {
+  let ui;
+  try {
+    ui = SpreadsheetApp.getUi();
+  } catch (err) {
+    return true;
+  }
+
+  const resp = ui.alert(
+    '\u00bfBorrar a este invitado?',
+    'Vas a borrar a "' + nombre + '".\n\n' +
+    'Se quitar\u00e1 de la lista y el enlace que ya le hayas enviado ' +
+    'dejar\u00e1 de mostrar su nombre.\n\n\u00bfContinuar?',
+    ui.ButtonSet.YES_NO
+  );
+  return resp === ui.Button.YES;
+}
+
+function avisar(mensaje) {
+  try {
+    SpreadsheetApp.getActiveSpreadsheet().toast(mensaje, '⚠️ Atención', 8);
+  } catch (err) { /* sin interfaz, se ignora */ }
+}
+
+function sincronizarSiCorresponde() {
+  try {
+    syncInvitadosAGitHub();
+  } catch (err) {
+    console.error('Sync falló:', err);
   }
 }
 
@@ -390,3 +468,102 @@ function ajustarColumnasInvitados() {
   }
 }
 
+// ============================================================
+// 8. COLUMNA "ENVIAR POR WHATSAPP"
+// Se ejecuta dentro de configurarTodo.
+//
+// Por qué un enlace wa.me y no un envío automático:
+//   • La API oficial (WhatsApp Cloud API) SECUESTRA el número: una vez
+//     registrado ya no se puede usar en la app normal de WhatsApp.
+//     Además exige verificación de empresa y plantillas aprobadas.
+//   • Las librerías no oficiales violan los términos y mandar ~100
+//     mensajes casi idénticos es justo lo que dispara su antispam:
+//     riesgo real de perder el número antes de la boda.
+//
+// Con wa.me, al hacer clic se abre WhatsApp desde el número de ella
+// con el mensaje y el enlace ya escritos para ESE invitado. Sólo hay
+// que pulsar enviar. Un toque por invitado, gratis y sin riesgo.
+//
+// Crea (si no existen) dos columnas al final: TELÉFONO y WHATSAPP.
+// Se añaden al final para no descuadrar las columnas ya existentes.
+// ============================================================
+const WA_PAIS = '506'; // código de país sin el "+", Costa Rica
+const WA_MENSAJE = '\u00a1Hola {NOMBRE}! \ud83d\udc8d Estiven y Johana te invitan a su boda ' +
+                   'el 13 de marzo de 2027. Esta es tu invitaci\u00f3n personal:';
+
+function configurarColumnaWhatsApp() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(INV_SHEET_NAME);
+  if (!sheet) return;
+
+  const buscarCol = (titulos, texto) => {
+    let encontrada = 0;
+    titulos.forEach((t, i) => {
+      if (String(t).toUpperCase().indexOf(texto) !== -1) encontrada = i + 1;
+    });
+    return encontrada;
+  };
+
+  let titulos = sheet.getRange(INV_HEADER_ROW, 1, 1, sheet.getLastColumn()).getValues()[0];
+
+  const colLink = buscarCol(titulos, 'LINK');
+  if (!colLink) {
+    console.error('\u274c No se encontr\u00f3 la columna LINK; no se puede armar el mensaje.');
+    return;
+  }
+
+  // Crear TELÉFONO y WHATSAPP si faltan, copiando el formato de una
+  // cabecera existente para que no desentonen.
+  const crearColumna = (titulo) => {
+    const col = sheet.getLastColumn() + 1;
+    sheet.getRange(INV_HEADER_ROW, colLink)
+         .copyFormatToRange(sheet, col, col, INV_HEADER_ROW, INV_HEADER_ROW);
+    sheet.getRange(INV_HEADER_ROW, col).setValue(titulo);
+    sheet.setColumnWidth(col, 150);
+    return col;
+  };
+
+  let colTel = buscarCol(titulos, 'TEL');
+  if (!colTel) colTel = crearColumna('\u270f\ufe0f TEL\u00c9FONO\nCon o sin c\u00f3digo de pa\u00eds');
+
+  titulos = sheet.getRange(INV_HEADER_ROW, 1, 1, sheet.getLastColumn()).getValues()[0];
+  let colWa = buscarCol(titulos, 'WHATSAPP');
+  if (!colWa) colWa = crearColumna('\ud83d\udcf2 WHATSAPP\n(auto — clic para enviar)');
+
+  // Rellenar la fórmula desde la primera fila de datos hasta el final
+  // de la hoja, para que los invitados nuevos ya traigan su botón.
+  const letra = n => {
+    let r = '';
+    while (n > 0) { const m = (n - 1) % 26; r = String.fromCharCode(65 + m) + r; n = (n - m - 1) / 26; }
+    return r;
+  };
+
+  const lTel  = letra(colTel);
+  const lNom  = letra(INV_COL_NOMBRE);
+  const lLink = letra(colLink);
+  const desde = INV_HEADER_ROW + 1;
+  const hasta = sheet.getMaxRows();
+
+  const formulas = [];
+  for (let fila = desde; fila <= hasta; fila++) {
+    const refTel  = '$' + lTel  + fila;
+    const refNom  = '$' + lNom  + fila;
+    const refLink = '$' + lLink + fila;
+
+    // Deja sólo dígitos y antepone el código de país si el número
+    // viene en formato local de 8 cifras.
+    const digitos = 'REGEXREPLACE(TO_TEXT(' + refTel + '),"\D","")';
+    const numero  = 'IF(LEN(' + digitos + ')=8,"' + WA_PAIS + '"&' + digitos + ',' + digitos + ')';
+    const texto   = 'ENCODEURL(SUBSTITUTE("' + WA_MENSAJE + '","{NOMBRE}",' + refNom + ')&" "&' + refLink + ')';
+
+    formulas.push([
+      '=IF(' + refNom + '="","",' +
+        'IF(' + digitos + '="","\u26a0\ufe0f Falta tel\u00e9fono",' +
+          'HYPERLINK("https://wa.me/"&' + numero + '&"?text="&' + texto + ',"\ud83d\udcf2 Enviar")))'
+    ]);
+  }
+
+  sheet.getRange(desde, colWa, formulas.length, 1).setFormulas(formulas);
+
+  console.log('\u2705 WhatsApp listo — tel\u00e9fono en columna ' + lTel +
+              ', bot\u00f3n en columna ' + letra(colWa));
+}
