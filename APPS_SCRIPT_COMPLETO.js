@@ -489,6 +489,10 @@ function ajustarColumnasInvitados() {
 // Se añaden al final para no descuadrar las columnas ya existentes.
 // ============================================================
 const WA_PAIS = '506'; // código de país sin el "+", Costa Rica
+// Endpoint oficial de click-to-chat. Se usa api.whatsapp.com y no
+// wa.me porque hay redes y DNS caseros que no resuelven wa.me
+// (falla con 'servidor no encontrado'). Ambos son equivalentes.
+const WA_URL_BASE = 'https://api.whatsapp.com/send?phone=';
 const WA_MENSAJE = '\u00a1Hola {NOMBRE}! \ud83d\udc8d Estiven y Johana te invitan a su boda ' +
                    'el 13 de marzo de 2027. Esta es tu invitaci\u00f3n personal:';
 
@@ -611,7 +615,7 @@ function configurarColumnaWhatsApp() {
     formulas.push([
       '=IF(' + refNom + '=""' + S + '""' + S +
         'IF(' + digitos + '=""' + S + '"\u26a0\ufe0f Falta tel\u00e9fono"' + S +
-          'HYPERLINK("https://wa.me/"&' + numero + '&"?text="&' + texto + S + '"\ud83d\udcf2 Enviar")))'
+          'HYPERLINK("' + WA_URL_BASE + '"&' + numero + '&"&text="&' + texto + S + '"\ud83d\udcf2 Enviar")))'
     ]);
   }
 
