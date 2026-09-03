@@ -324,21 +324,43 @@ function detectarFilaCabecera(sheet) {
   const hasta = Math.min(10, sheet.getLastRow());
   if (hasta < 1) return INV_HEADER_ROW;
 
+  // No vale con buscar la primera fila que diga "NOMBRE": la banda de
+  // titulo o una fila de instrucciones puede llevar esa palabra y
+  // ganarle a la cabecera de verdad. Se puntua cada fila por cuantos
+  // titulos reconoce y se queda con la mejor.
+  const CLAVES = ['NOMBRE', 'ACOMP', 'LINK', 'JSON', 'TEL', 'WHATSAPP', 'AUTO', 'ID'];
   const filas = sheet.getRange(1, 1, hasta, sheet.getLastColumn()).getValues();
+
+  let mejor = 0, mejorPunt = 0, mejorLlenas = 0;
   for (let i = 0; i < filas.length; i++) {
-    const texto = filas[i].map(v => String(v).toUpperCase()).join(' | ');
-    if (texto.indexOf('NOMBRE') !== -1) {
-      const fila = i + 1;
-      if (fila !== INV_HEADER_ROW) {
-        console.log('ℹ️ Cabecera de Invitados detectada en la fila ' + fila +
-                    ' (por defecto era ' + INV_HEADER_ROW + ')');
-      }
-      return fila;
+    const celdas = filas[i].map(v => String(v).toUpperCase().trim());
+    const llenas = celdas.filter(t => t !== '').length;
+
+    // Una banda de titulo combinada deja una sola celda con texto y el
+    // resto vacias; una cabecera de verdad llena varias columnas.
+    if (llenas < 2) continue;
+
+    let punt = 0;
+    CLAVES.forEach(k => {
+      if (celdas.some(t => t.indexOf(k) !== -1)) punt++;
+    });
+
+    if (punt > mejorPunt || (punt === mejorPunt && punt > 0 && llenas > mejorLlenas)) {
+      mejor = i + 1; mejorPunt = punt; mejorLlenas = llenas;
     }
   }
-  console.warn('⚠️ No se encontro "NOMBRE" en las primeras ' + hasta +
-               ' filas de Invitados; se usa la fila ' + INV_HEADER_ROW);
-  return INV_HEADER_ROW;
+
+  if (mejorPunt < 2) {
+    console.warn('⚠️ No se reconocio la cabecera de Invitados en las primeras ' +
+                 hasta + ' filas; se usa la fila ' + INV_HEADER_ROW);
+    return INV_HEADER_ROW;
+  }
+
+  if (mejor !== INV_HEADER_ROW) {
+    console.log('ℹ️ Cabecera de Invitados detectada en la fila ' + mejor +
+                ' (' + mejorPunt + ' titulos reconocidos; por defecto era ' + INV_HEADER_ROW + ')');
+  }
+  return mejor;
 }
 
 function alEditarInvitados(e) {
@@ -501,7 +523,10 @@ function ajustarColumnasInvitados() {
     console.log('✅ Invitados: ' + ocultas + ' oculta(s), ' + visibles +
                 ' visible(s), ' + protegidas + ' protegida(s) con aviso');
   } else {
-    console.error('❌ No se encontraron columnas "(auto)" en la fila ' + cab);
+    // Se lanza en vez de solo avisar: si no, configurarTodo lo cuenta
+    // como OK en el resumen y el fallo pasa desapercibido.
+    throw new Error('no se encontraron columnas "(auto)" en la fila ' + cab +
+                    '; revisa que esa fila sea la cabecera');
   }
 }
 
@@ -588,17 +613,26 @@ function configurarColumnaWhatsApp() {
 
   const colLink = buscarCol(titulos, 'LINK');
   if (!colLink) {
-    console.error('❌ No se encontró la columna LINK en la fila ' + cab +
-                  '. Revisa que esa fila siga siendo la cabecera.');
-    return;
+    throw new Error('no se encontró la columna LINK en la fila ' + cab +
+                    '; revisa que esa fila siga siendo la cabecera');
   }
 
   // Crear TELÉFONO y WHATSAPP si faltan, copiando el formato de una
   // cabecera existente para que no desentonen.
   const crearColumna = (titulo) => {
     const col = sheet.getLastColumn() + 1;
-    sheet.getRange(cab, colLink)
-         .copyFormatToRange(sheet, col, col, cab, cab);
+    // Copiar el formato es cosmetico: si la cabecera toca una celda
+    // combinada o el limite de la region inmovilizada, Sheets lanza
+    // una excepcion. Antes eso abortaba toda la funcion y no se
+    // escribia ninguna formula. Ahora se avisa y se sigue.
+    try {
+      sheet.getRange(cab, colLink)
+           .copyFormatToRange(sheet, col, col, cab, cab);
+    } catch (err) {
+      console.warn('⚠️ No se pudo copiar el formato a la columna nueva "' +
+                   titulo.split('\n')[0] + '": ' + err.message +
+                   ' — se crea igual, solo sin el estilo.');
+    }
     sheet.getRange(cab, col).setValue(titulo);
     sheet.setColumnWidth(col, 150);
     return col;
