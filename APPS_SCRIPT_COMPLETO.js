@@ -133,11 +133,13 @@ function syncInvitadosAGitHub() {
   const sheet = ss.getSheetByName('Invitados');
   if (!sheet) return;
 
+  const cab     = detectarFilaCabecera(sheet);
+  const primera = cab + 1;
   const lastRow = sheet.getLastRow();
-  if (lastRow < 4) return; // sin datos
+  if (lastRow < primera) return; // sin datos
 
-  // Leer columnas A (ID), B (Nombre), C (Acompañantes) desde fila 4
-  const data = sheet.getRange(4, 1, lastRow - 3, 3).getValues();
+  // Leer columnas A (ID), B (Nombre), C (Acompañantes) bajo la cabecera
+  const data = sheet.getRange(primera, 1, lastRow - cab, 3).getValues();
 
   // Construir objeto JSON
   const invitados = {};
@@ -305,7 +307,39 @@ function fixBusetaHeaderStyle() {
 const INV_SHEET_NAME = 'Invitados';
 const INV_COL_NOMBRE = 2; // B
 const INV_COL_ACOMP  = 3; // C
-const INV_HEADER_ROW = 3; // los datos empiezan en la fila 4
+const INV_HEADER_ROW = 3; // valor por defecto; ver detectarFilaCabecera
+
+// ------------------------------------------------------------
+// La cabecera NO se asume en la fila 3. Encima hay una banda de
+// titulo combinada y basta con editarla a mano (cambiar la fecha,
+// meter un salto de linea, insertar una fila) para que todo se
+// corra una fila. Cuando eso pasaba, buscarCol leia la fila 3, no
+// encontraba "LINK" y la funcion se salia sin escribir ninguna
+// formula: la columna de links dejaba de generarse.
+//
+// Se busca la fila que contiene el titulo "NOMBRE" en las primeras
+// 10 filas. Si no aparece, se cae al valor por defecto.
+// ------------------------------------------------------------
+function detectarFilaCabecera(sheet) {
+  const hasta = Math.min(10, sheet.getLastRow());
+  if (hasta < 1) return INV_HEADER_ROW;
+
+  const filas = sheet.getRange(1, 1, hasta, sheet.getLastColumn()).getValues();
+  for (let i = 0; i < filas.length; i++) {
+    const texto = filas[i].map(v => String(v).toUpperCase()).join(' | ');
+    if (texto.indexOf('NOMBRE') !== -1) {
+      const fila = i + 1;
+      if (fila !== INV_HEADER_ROW) {
+        console.log('ℹ️ Cabecera de Invitados detectada en la fila ' + fila +
+                    ' (por defecto era ' + INV_HEADER_ROW + ')');
+      }
+      return fila;
+    }
+  }
+  console.warn('⚠️ No se encontro "NOMBRE" en las primeras ' + hasta +
+               ' filas de Invitados; se usa la fila ' + INV_HEADER_ROW);
+  return INV_HEADER_ROW;
+}
 
 function alEditarInvitados(e) {
   try {
@@ -314,6 +348,7 @@ function alEditarInvitados(e) {
       return; // otras hojas no sincronizan ni resetean
     }
 
+    const cab     = detectarFilaCabecera(sheet);
     const filaIni = e.range.getRow();
     const nFilas  = e.range.getNumRows();
     const colIni  = e.range.getColumn();
@@ -323,7 +358,7 @@ function alEditarInvitados(e) {
     if (tocaNombre) {
       // ── Caso 1: una sola celda. Hay e.oldValue, así que se puede
       //    preguntar y deshacer.
-      if (nFilas === 1 && e.range.getNumColumns() === 1 && filaIni > INV_HEADER_ROW) {
+      if (nFilas === 1 && e.range.getNumColumns() === 1 && filaIni > cab) {
         const ahora  = String(e.range.getValue()).trim();
         const antes  = (e.oldValue === undefined) ? '' : String(e.oldValue).trim();
 
@@ -347,7 +382,7 @@ function alEditarInvitados(e) {
       // Reset de acompañantes en las filas que quedaron sin nombre
       for (let i = 0; i < nFilas; i++) {
         const fila = filaIni + i;
-        if (fila <= INV_HEADER_ROW) continue;
+        if (fila <= cab) continue;
         if (String(sheet.getRange(fila, INV_COL_NOMBRE).getValue()).trim() === '') {
           sheet.getRange(fila, INV_COL_ACOMP).setValue(0);
         }
@@ -433,7 +468,8 @@ function ajustarColumnasInvitados() {
     if (p.getDescription() === INV_PROTECT_TAG) p.remove();
   });
 
-  const titulos = sheet.getRange(INV_HEADER_ROW, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const cab     = detectarFilaCabecera(sheet);
+  const titulos = sheet.getRange(cab, 1, 1, sheet.getLastColumn()).getValues()[0];
   const maxRows = sheet.getMaxRows();
   let ocultas = 0, visibles = 0, protegidas = 0;
 
@@ -465,7 +501,7 @@ function ajustarColumnasInvitados() {
     console.log('✅ Invitados: ' + ocultas + ' oculta(s), ' + visibles +
                 ' visible(s), ' + protegidas + ' protegida(s) con aviso');
   } else {
-    console.error('❌ No se encontraron columnas "(auto)" en la fila ' + INV_HEADER_ROW);
+    console.error('❌ No se encontraron columnas "(auto)" en la fila ' + cab);
   }
 }
 
@@ -547,11 +583,13 @@ function configurarColumnaWhatsApp() {
 
   const S = detectarSeparador();
 
-  let titulos = sheet.getRange(INV_HEADER_ROW, 1, 1, sheet.getLastColumn()).getValues()[0];
+  const cab = detectarFilaCabecera(sheet);
+  let titulos = sheet.getRange(cab, 1, 1, sheet.getLastColumn()).getValues()[0];
 
   const colLink = buscarCol(titulos, 'LINK');
   if (!colLink) {
-    console.error('\u274c No se encontr\u00f3 la columna LINK; no se puede armar el mensaje.');
+    console.error('❌ No se encontró la columna LINK en la fila ' + cab +
+                  '. Revisa que esa fila siga siendo la cabecera.');
     return;
   }
 
@@ -559,9 +597,9 @@ function configurarColumnaWhatsApp() {
   // cabecera existente para que no desentonen.
   const crearColumna = (titulo) => {
     const col = sheet.getLastColumn() + 1;
-    sheet.getRange(INV_HEADER_ROW, colLink)
-         .copyFormatToRange(sheet, col, col, INV_HEADER_ROW, INV_HEADER_ROW);
-    sheet.getRange(INV_HEADER_ROW, col).setValue(titulo);
+    sheet.getRange(cab, colLink)
+         .copyFormatToRange(sheet, col, col, cab, cab);
+    sheet.getRange(cab, col).setValue(titulo);
     sheet.setColumnWidth(col, 150);
     return col;
   };
@@ -569,7 +607,7 @@ function configurarColumnaWhatsApp() {
   let colTel = buscarCol(titulos, 'TEL', [colLink]);
   if (!colTel) colTel = crearColumna('\u270f\ufe0f TEL\u00c9FONO\nCon o sin c\u00f3digo de pa\u00eds');
 
-  titulos = sheet.getRange(INV_HEADER_ROW, 1, 1, sheet.getLastColumn()).getValues()[0];
+  titulos = sheet.getRange(cab, 1, 1, sheet.getLastColumn()).getValues()[0];
   let colWa = buscarCol(titulos, 'WHATSAPP', [colLink, colTel]);
   if (!colWa) colWa = crearColumna('\ud83d\udcf2 WHATSAPP\n(auto — clic para enviar)');
 
@@ -585,7 +623,7 @@ function configurarColumnaWhatsApp() {
   const lNom  = letra(INV_COL_NOMBRE);
   const lLink = letra(colLink);
   const lId   = letra(1);
-  const desde = INV_HEADER_ROW + 1;
+  const desde = cab + 1;
   const hasta = sheet.getMaxRows();
 
   // La columna LINK es "(auto)", asi que la genera el script en vez de
