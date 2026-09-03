@@ -1294,9 +1294,11 @@ body.env-locked { overflow: hidden; }
   letter-spacing: 0.02em;
 }
 
-/* Companions list */
-.companions-section { margin-bottom: 1.1rem; display: none; }
-.companions-section.visible { display: block; }
+/* Companions list y demás campos condicionados a la asistencia */
+.companions-section,
+.form-conditional { margin-bottom: 1.1rem; display: none; }
+.companions-section.visible,
+.form-conditional.visible { display: block; }
 .companion-row {
   display: flex;
   gap: 0.5rem;

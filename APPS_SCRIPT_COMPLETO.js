@@ -15,6 +15,16 @@ const JSON_FILE     = 'invitados.json';
 // ============================================================
 // 1. RECIBIR RSVP DESDE EL FORMULARIO WEB
 // ============================================================
+// ⚠️ "Requiere buseta" va AL FINAL a propósito. Si se insertara en
+// medio, las filas ya guardadas quedarían desalineadas respecto a la
+// cabecera (el Mensaje de las respuestas viejas caería bajo la columna
+// nueva). Añadiendo al final, lo histórico se conserva intacto.
+const RSVP_HEADERS = [
+  'Timestamp', 'ID', 'Nombre', 'Teléfono',
+  'Asistencia', 'Cant. Acompañantes', 'Nombres Acompañantes', 'Mensaje',
+  'Requiere buseta'
+];
+
 function doPost(e) {
   try {
     const ss    = SpreadsheetApp.getActiveSpreadsheet();
@@ -22,12 +32,14 @@ function doPost(e) {
 
     if (!sheet) {
       sheet = ss.insertSheet('RSVPs');
-      sheet.appendRow([
-        'Timestamp', 'ID', 'Nombre', 'Teléfono',
-        'Asistencia', 'Cant. Acompañantes', 'Nombres Acompañantes', 'Mensaje'
-      ]);
-      // Formato header
-      sheet.getRange(1, 1, 1, 8).setFontWeight('bold');
+      sheet.appendRow(RSVP_HEADERS);
+      sheet.getRange(1, 1, 1, RSVP_HEADERS.length).setFontWeight('bold');
+    } else if (sheet.getLastColumn() < RSVP_HEADERS.length) {
+      // Hoja creada antes de existir la columna de buseta: se completa
+      // la cabecera para que la columna nueva no quede sin título.
+      sheet.getRange(1, 1, 1, RSVP_HEADERS.length)
+           .setValues([RSVP_HEADERS])
+           .setFontWeight('bold');
     }
 
     const data = JSON.parse(e.postData.contents);
@@ -40,7 +52,8 @@ function doPost(e) {
       data.asistencia,
       data.cant_acompanantes,
       data.acompanantes,
-      data.mensaje
+      data.mensaje,
+      data.buseta
     ]);
 
     return ContentService
