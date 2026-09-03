@@ -492,6 +492,35 @@ const WA_PAIS = '506'; // código de país sin el "+", Costa Rica
 const WA_MENSAJE = '\u00a1Hola {NOMBRE}! \ud83d\udc8d Estiven y Johana te invitan a su boda ' +
                    'el 13 de marzo de 2027. Esta es tu invitaci\u00f3n personal:';
 
+// ------------------------------------------------------------
+// El separador de argumentos depende de la configuración regional de
+// la hoja: "," en locales tipo EE.UU. y ";" en español. Una fórmula
+// escrita con el separador equivocado NO da un error descriptivo:
+// da #ERROR! a secas, que es justo lo que estaba pasando.
+//
+// En vez de mantener una tabla de locales, se mide: se escribe una
+// fórmula de prueba con "," en una hoja temporal y se comprueba si
+// Sheets la entendió.
+// ------------------------------------------------------------
+function detectarSeparador() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let tmp = null;
+  try {
+    tmp = ss.insertSheet('__probe_sep__');
+    tmp.getRange(1, 1).setFormula('=IF(1=1,"ok","no")');
+    SpreadsheetApp.flush();
+    const sep = (tmp.getRange(1, 1).getDisplayValue() === 'ok') ? ',' : ';';
+    console.log('Separador detectado: "' + sep + '"  |  locale: ' +
+                ss.getSpreadsheetLocale());
+    return sep;
+  } catch (err) {
+    console.error('No se pudo detectar el separador, se asume ",": ' + err.message);
+    return ',';
+  } finally {
+    if (tmp) { try { ss.deleteSheet(tmp); } catch (e) {} }
+  }
+}
+
 function configurarColumnaWhatsApp() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(INV_SHEET_NAME);
   if (!sheet) return;
@@ -511,6 +540,8 @@ function configurarColumnaWhatsApp() {
     });
     return encontrada;
   };
+
+  const S = detectarSeparador();
 
   let titulos = sheet.getRange(INV_HEADER_ROW, 1, 1, sheet.getLastColumn()).getValues()[0];
 
@@ -560,7 +591,7 @@ function configurarColumnaWhatsApp() {
   const linkFormulas = [];
   for (let fila = desde; fila <= hasta; fila++) {
     linkFormulas.push([
-      '=IF($' + lNom + fila + '="","","' + SITE_URL + '/?id="&$' + lId + fila + ')'
+      '=IF($' + lNom + fila + '=""' + S + '""' + S + '"' + SITE_URL + '/?id="&$' + lId + fila + ')'
     ]);
   }
   sheet.getRange(desde, colLink, linkFormulas.length, 1).setFormulas(linkFormulas);
@@ -573,14 +604,14 @@ function configurarColumnaWhatsApp() {
 
     // Deja sólo dígitos y antepone el código de país si el número
     // viene en formato local de 8 cifras.
-    const digitos = 'REGEXREPLACE(TO_TEXT(' + refTel + '),"\\D","")';
-    const numero  = 'IF(LEN(' + digitos + ')=8,"' + WA_PAIS + '"&' + digitos + ',' + digitos + ')';
-    const texto   = 'ENCODEURL(SUBSTITUTE("' + WA_MENSAJE + '","{NOMBRE}",' + refNom + ')&" "&' + refLink + ')';
+    const digitos = 'REGEXREPLACE(TO_TEXT(' + refTel + ')' + S + '"\\D"' + S + '"")';
+    const numero  = 'IF(LEN(' + digitos + ')=8' + S + '"' + WA_PAIS + '"&' + digitos + S + digitos + ')';
+    const texto   = 'ENCODEURL(SUBSTITUTE("' + WA_MENSAJE + '"' + S + '"{NOMBRE}"' + S + refNom + ')&" "&' + refLink + ')';
 
     formulas.push([
-      '=IF(' + refNom + '="","",' +
-        'IF(' + digitos + '="","\u26a0\ufe0f Falta tel\u00e9fono",' +
-          'HYPERLINK("https://wa.me/"&' + numero + '&"?text="&' + texto + ',"\ud83d\udcf2 Enviar")))'
+      '=IF(' + refNom + '=""' + S + '""' + S +
+        'IF(' + digitos + '=""' + S + '"\u26a0\ufe0f Falta tel\u00e9fono"' + S +
+          'HYPERLINK("https://wa.me/"&' + numero + '&"?text="&' + texto + S + '"\ud83d\udcf2 Enviar")))'
     ]);
   }
 
