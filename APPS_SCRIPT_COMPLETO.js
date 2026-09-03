@@ -10,6 +10,7 @@ const GITHUB_USER   = 'Tempest9805';
 const GITHUB_REPO   = 'Invitaciones_boda';
 const GITHUB_BRANCH = 'main';
 const JSON_FILE     = 'invitados.json';
+const SITE_URL      = 'https://invitacionesbodaej.netlify.app'; // sin barra final
 // ────────────────────────────────────────────────────────────
 
 // ============================================================
@@ -495,10 +496,18 @@ function configurarColumnaWhatsApp() {
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(INV_SHEET_NAME);
   if (!sheet) return;
 
-  const buscarCol = (titulos, texto) => {
+  // OJO: la cabecera de LINK dice "enviar por WhatsApp", asi que buscar
+  // 'WHATSAPP' a secas la encontraba a ella y el script escribia la
+  // formula ENCIMA de LINK. Como la formula se referencia a si misma,
+  // la celda quedaba en #ERROR!. Por eso hay que poder excluir las
+  // columnas ya identificadas.
+  const buscarCol = (titulos, texto, excluir) => {
+    excluir = excluir || [];
     let encontrada = 0;
     titulos.forEach((t, i) => {
-      if (String(t).toUpperCase().indexOf(texto) !== -1) encontrada = i + 1;
+      const col = i + 1;
+      if (excluir.indexOf(col) !== -1) return;
+      if (String(t).toUpperCase().indexOf(texto) !== -1) encontrada = col;
     });
     return encontrada;
   };
@@ -522,11 +531,11 @@ function configurarColumnaWhatsApp() {
     return col;
   };
 
-  let colTel = buscarCol(titulos, 'TEL');
+  let colTel = buscarCol(titulos, 'TEL', [colLink]);
   if (!colTel) colTel = crearColumna('\u270f\ufe0f TEL\u00c9FONO\nCon o sin c\u00f3digo de pa\u00eds');
 
   titulos = sheet.getRange(INV_HEADER_ROW, 1, 1, sheet.getLastColumn()).getValues()[0];
-  let colWa = buscarCol(titulos, 'WHATSAPP');
+  let colWa = buscarCol(titulos, 'WHATSAPP', [colLink, colTel]);
   if (!colWa) colWa = crearColumna('\ud83d\udcf2 WHATSAPP\n(auto — clic para enviar)');
 
   // Rellenar la fórmula desde la primera fila de datos hasta el final
@@ -540,8 +549,21 @@ function configurarColumnaWhatsApp() {
   const lTel  = letra(colTel);
   const lNom  = letra(INV_COL_NOMBRE);
   const lLink = letra(colLink);
+  const lId   = letra(1);
   const desde = INV_HEADER_ROW + 1;
   const hasta = sheet.getMaxRows();
+
+  // La columna LINK es "(auto)", asi que la genera el script en vez de
+  // depender de una formula escrita a mano — que es la que estaba
+  // dando #ERROR!. Ademas el mensaje de WhatsApp la usa: si LINK
+  // falla, el mensaje sale roto tambien.
+  const linkFormulas = [];
+  for (let fila = desde; fila <= hasta; fila++) {
+    linkFormulas.push([
+      '=IF($' + lNom + fila + '="","","' + SITE_URL + '/?id="&$' + lId + fila + ')'
+    ]);
+  }
+  sheet.getRange(desde, colLink, linkFormulas.length, 1).setFormulas(linkFormulas);
 
   const formulas = [];
   for (let fila = desde; fila <= hasta; fila++) {
@@ -551,7 +573,7 @@ function configurarColumnaWhatsApp() {
 
     // Deja sólo dígitos y antepone el código de país si el número
     // viene en formato local de 8 cifras.
-    const digitos = 'REGEXREPLACE(TO_TEXT(' + refTel + '),"\D","")';
+    const digitos = 'REGEXREPLACE(TO_TEXT(' + refTel + '),"\\D","")';
     const numero  = 'IF(LEN(' + digitos + ')=8,"' + WA_PAIS + '"&' + digitos + ',' + digitos + ')';
     const texto   = 'ENCODEURL(SUBSTITUTE("' + WA_MENSAJE + '","{NOMBRE}",' + refNom + ')&" "&' + refLink + ')';
 
@@ -564,6 +586,7 @@ function configurarColumnaWhatsApp() {
 
   sheet.getRange(desde, colWa, formulas.length, 1).setFormulas(formulas);
 
+  console.log('✅ LINK regenerado en columna ' + lLink + ' -> ' + SITE_URL);
   console.log('\u2705 WhatsApp listo — tel\u00e9fono en columna ' + lTel +
               ', bot\u00f3n en columna ' + letra(colWa));
 }
