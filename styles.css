@@ -1397,6 +1397,33 @@ body.env-locked { overflow: hidden; }
   padding: 2rem 1rem;
 }
 .rsvp-success.show { display: block; }
+/* [hidden] pone display:none desde la hoja del navegador; se refuerza
+   aquí porque estos dos elementos llevan display propio. */
+.rsvp-success-meta[hidden], .rsvp-edit-link[hidden] { display: none !important; }
+.rsvp-success-meta {
+  margin-top: 0.9rem;
+  font-size: 0.82rem;
+  color: rgba(26,26,24,0.6);
+  font-weight: 300;
+}
+/* Salida discreta por si alguien se equivocó al responder: visible,
+   pero sin competir con el mensaje de agradecimiento. */
+.rsvp-edit-link {
+  display: inline-block;
+  margin-top: 1.2rem;
+  padding: 0.5rem 0.2rem;
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba(196,169,98,0.7);
+  color: var(--olive);
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  font-weight: 300;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+.rsvp-edit-link:hover { color: var(--olive-dark); border-bottom-color: var(--gold); }
+.rsvp-edit-link:focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; }
 .rsvp-success-icon { font-size: 3rem; margin-bottom: 1rem; }
 .rsvp-success h3 {
   font-family: var(--font-display);

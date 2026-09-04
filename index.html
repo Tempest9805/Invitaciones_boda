@@ -424,8 +424,12 @@
     <!-- Success -->
     <div class="rsvp-success" id="rsvp-success" role="status" aria-live="polite" aria-atomic="true">
       <div class="rsvp-success-icon"><i class="ph-thin ph-heart"></i></div>
-      <h3>¡Gracias por confirmar!</h3>
+      <h3 id="rsvp-success-title">¡Gracias por confirmar!</h3>
       <p>Estiven y Johana están emocionados de compartir<br/>este día tan especial contigo.</p>
+      <p class="rsvp-success-meta" id="rsvp-success-meta" hidden></p>
+      <button type="button" class="rsvp-edit-link" id="rsvp-edit" hidden>
+        Necesito corregir mi respuesta
+      </button>
     </div>
   </section>
 
@@ -478,8 +482,16 @@ const RSVP_ENDPOINT = 'https://script.google.com/macros/s/AKfycbyzvZDRJUXMb9Sfvq
 // DATOS DE INVITADOS
 // Se cargan automáticamente desde invitados.json en GitHub
 // ============================================================
-const INVITADOS_JSON_URL =
-  'https://api.github.com/repos/Tempest9805/Invitaciones_boda/contents/invitados.json';
+// raw.githubusercontent NO tiene límite de peticiones y permite CORS.
+// api.github.com corta a 60 peticiones por hora Y POR IP: varios
+// invitados detrás del mismo operador móvil comparten IP, así que en
+// plena tanda de invitaciones se quedaban sin ver su nombre.
+// La segunda URL es la copia que Netlify despliega junto a la página:
+// mismo origen, sin CORS, por si raw fallara.
+const INVITADOS_URLS = [
+  'https://raw.githubusercontent.com/Tempest9805/Invitaciones_boda/main/invitados.json',
+  './invitados.json'
+];
 
 // ============================================================
 // ESTADO
@@ -503,21 +515,42 @@ window.addEventListener('DOMContentLoaded', async () => {
 
   await loadInvitados();
   loadGuest();
+  initRSVPPrevio();   // necesita currentGuest, va después de loadGuest
 });
 
 // ============================================================
 // CARGAR JSON DESDE GITHUB API (evita CORS de raw)
 // ============================================================
+// Un 403 por límite de peticiones devuelve un cuerpo JSON válido, así
+// que res.json() no lanza y el catch nunca saltaba: INVITADOS se
+// quedaba con el objeto de error y el invitado veía "Querido invitado"
+// sin ningún aviso. Por eso se comprueba el estado Y la forma.
+function esListaDeInvitados(x) {
+  if (!x || typeof x !== 'object' || Array.isArray(x)) return false;
+  return Object.keys(x).some(k => x[k] && typeof x[k].nombre === 'string');
+}
+
 async function loadInvitados() {
-  try {
-    const res  = await fetch(INVITADOS_JSON_URL, {
-      headers: { 'Accept': 'application/vnd.github.v3.raw' }
-    });
-    INVITADOS  = await res.json();
-  } catch (err) {
-    console.warn('No se pudo cargar invitados.json:', err);
-    INVITADOS  = { "demo": { "nombre": "Invitado Demo", "acompanantes": 2 } };
+  for (const url of INVITADOS_URLS) {
+    try {
+      const res = await fetch(url, { cache: 'no-cache' });
+      if (!res.ok) {
+        console.warn('invitados.json respondió ' + res.status + ' en ' + url);
+        continue;
+      }
+      const datos = await res.json();
+      if (!esListaDeInvitados(datos)) {
+        console.warn('invitados.json con forma inesperada en ' + url);
+        continue;
+      }
+      INVITADOS = datos;
+      return;
+    } catch (err) {
+      console.warn('No se pudo cargar ' + url + ':', err);
+    }
   }
+  console.error('No se pudo cargar la lista de invitados desde ninguna fuente.');
+  INVITADOS = {};
 }
 
 // ============================================================
@@ -928,10 +961,78 @@ async function submitRSVP() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
+    recordarConfirmacion(payload.asistencia);
     showSuccess();
   } catch (err) {
+    recordarConfirmacion(payload.asistencia);
     showSuccess(); // no-cors siempre lanza, asumir éxito
   }
+}
+
+// Se recuerda la confirmación en el propio navegador para que quien
+// vuelva a abrir su enlace no rellene el formulario otra vez sin darse
+// cuenta. No es una barrera de verdad — se pierde al cambiar de móvil o
+// al borrar los datos del navegador — así que la garantía de que no
+// haya filas duplicadas está en el Apps Script, que sobrescribe la fila
+// del invitado en vez de añadir otra.
+function claveConfirmacion() {
+  const id = currentGuest && currentGuest.id;
+  return id ? 'rsvp-confirmado:' + id : null;
+}
+
+function recordarConfirmacion(asistencia) {
+  const clave = claveConfirmacion();
+  if (!clave) return;
+  try {
+    localStorage.setItem(clave, JSON.stringify({
+      fecha: new Date().toISOString(),
+      asistencia: asistencia
+    }));
+  } catch (err) {
+    // Modo privado o almacenamiento bloqueado: no es crítico, el
+    // Apps Script sigue evitando el duplicado.
+    console.warn('No se pudo recordar la confirmación:', err);
+  }
+}
+
+function confirmacionPrevia() {
+  const clave = claveConfirmacion();
+  if (!clave) return null;
+  try {
+    const guardado = localStorage.getItem(clave);
+    return guardado ? JSON.parse(guardado) : null;
+  } catch (err) {
+    return null;
+  }
+}
+
+function mostrarYaConfirmado(previa) {
+  document.querySelector('.rsvp-form').style.display = 'none';
+  document.getElementById('rsvp-success').classList.add('show');
+  document.getElementById('rsvp-success-title').textContent = 'Ya confirmaste tu asistencia';
+
+  const meta = document.getElementById('rsvp-success-meta');
+  let cuando = '';
+  const d = new Date(previa.fecha);
+  if (!isNaN(d.getTime())) {
+    cuando = ' el ' + d.toLocaleDateString('es-CR', {
+      day: 'numeric', month: 'long', year: 'numeric'
+    });
+  }
+  meta.textContent = 'Respondiste ' + (previa.asistencia || '') + cuando + '.';
+  meta.hidden = false;
+
+  const editar = document.getElementById('rsvp-edit');
+  editar.hidden = false;
+  editar.onclick = () => {
+    document.getElementById('rsvp-success').classList.remove('show');
+    document.querySelector('.rsvp-form').style.display = '';
+  };
+}
+
+function initRSVPPrevio() {
+  const previa = confirmacionPrevia();
+  if (previa) mostrarYaConfirmado(previa);
 }
 
 function showSuccess() {

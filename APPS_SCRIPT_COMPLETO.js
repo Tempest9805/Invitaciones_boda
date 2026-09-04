@@ -84,6 +84,18 @@ const RSVP_HEADERS = [
 ];
 
 function doPost(e) {
+  // El anti-duplicados lee y luego escribe. Sin candado, dos envíos
+  // simultáneos del mismo invitado podrían no verse el uno al otro y
+  // acabar creando las dos filas que precisamente queremos evitar.
+  const lock = LockService.getScriptLock();
+  try {
+    lock.waitLock(20000);
+  } catch (err) {
+    return ContentService
+      .createTextOutput(JSON.stringify({ ok: false, error: 'servidor ocupado, reintenta' }))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
   try {
     const ss    = SpreadsheetApp.getActiveSpreadsheet();
     let sheet   = ss.getSheetByName('RSVPs');
@@ -108,7 +120,7 @@ function doPost(e) {
 
     const data = JSON.parse(e.postData.contents);
 
-    sheet.appendRow([
+    const fila = [
       new Date(data.timestamp),
       data.id,
       data.nombre,
@@ -118,16 +130,60 @@ function doPost(e) {
       data.acompanantes,
       data.mensaje,
       data.buseta
-    ]);
+    ];
+
+    // ── Anti-duplicados ──────────────────────────────────────
+    // Si el invitado ya confirmó y vuelve a enviar (se le olvidó, o
+    // creyó que no se envió), se SOBRESCRIBE su fila en vez de añadir
+    // otra. Así la tabla nunca tiene dos filas del mismo invitado y el
+    // contador de personas no cuenta a nadie dos veces.
+    //
+    // Ojo con 'generico': es lo que manda la página cuando se abre sin
+    // ?id=. Ahí no se puede deduplicar, porque serían personas
+    // distintas pisándose entre sí.
+    const id = String(data.id || '').trim();
+    const deduplicable = id !== '' && id.toLowerCase() !== 'generico';
+
+    let filaExistente = 0;
+    if (deduplicable) {
+      const ultima = sheet.getLastRow();
+      if (ultima >= 1) {
+        // La columna del ID se busca por su título, no por posición.
+        const cab = sheet.getRange(1, 1, Math.min(8, ultima), sheet.getLastColumn()).getValues();
+        let colId = 0, hRow = 0;
+        for (let r = 0; r < cab.length && !colId; r++) {
+          for (let c = 0; c < cab[r].length; c++) {
+            if (String(cab[r][c]).trim().toUpperCase() === 'ID') { colId = c + 1; hRow = r + 1; break; }
+          }
+        }
+        if (colId && ultima > hRow) {
+          const ids = sheet.getRange(hRow + 1, colId, ultima - hRow, 1).getValues();
+          for (let i = ids.length - 1; i >= 0; i--) {          // la más reciente
+            if (String(ids[i][0]).trim() === id) { filaExistente = hRow + 1 + i; break; }
+          }
+        }
+      }
+    }
+
+    let accion;
+    if (filaExistente) {
+      sheet.getRange(filaExistente, 1, 1, fila.length).setValues([fila]);
+      accion = 'actualizada';
+    } else {
+      sheet.appendRow(fila);
+      accion = 'nueva';
+    }
 
     return ContentService
-      .createTextOutput(JSON.stringify({ ok: true }))
+      .createTextOutput(JSON.stringify({ ok: true, accion: accion }))
       .setMimeType(ContentService.MimeType.JSON);
 
   } catch(err) {
     return ContentService
       .createTextOutput(JSON.stringify({ ok: false, error: err.message }))
       .setMimeType(ContentService.MimeType.JSON);
+  } finally {
+    lock.releaseLock();
   }
 }
 
