@@ -51,6 +51,13 @@ function configurarTodo() {
   }
 
   try {
+    contadorPersonasRSVP();
+    resultados.push('contador de personas: OK');
+  } catch (err) {
+    resultados.push('contador de personas: FALLÓ — ' + err.message);
+  }
+
+  try {
     crearTrigger();
     resultados.push('trigger de sync: OK');
   } catch (err) {
@@ -556,6 +563,107 @@ const WA_PAIS = '506'; // código de país sin el "+", Costa Rica
 const WA_URL_BASE = 'https://api.whatsapp.com/send?phone=';
 const WA_MENSAJE = '\u00a1Hola {NOMBRE}! \ud83d\udc8d Estiven y Johana te invitan a su boda ' +
                    'el 9 de enero de 2027. Esta es tu invitaci\u00f3n personal:';
+
+// ============================================================
+// CONTADOR DE PERSONAS EN LA HOJA RSVPs
+//
+// Cada fila confirmada son 1 (el invitado) + sus acompañantes. Se
+// escribe una fórmula viva en un recuadro a la derecha de la tabla,
+// así que se actualiza sola con cada confirmación nueva sin depender
+// de ningún trigger.
+//
+// Sólo cuenta a quien dijo que sí: una fila con "No podré asistir"
+// no debe sumar personas a la cuenta de la comida.
+// ============================================================
+const RSVP_ETIQUETA_TOTAL = 'PERSONAS CONFIRMADAS';
+
+function contadorPersonasRSVP() {
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName('RSVPs');
+  if (!sheet) throw new Error('no existe la hoja "RSVPs"');
+
+  const scan = Math.min(8, sheet.getLastRow());
+  if (scan < 1) throw new Error('la hoja "RSVPs" está vacía');
+
+  const ancho = sheet.getLastColumn();
+  const grid  = sheet.getRange(1, 1, scan, ancho).getValues();
+
+  // Localizar la cabecera por sus títulos, no por su número de fila:
+  // encima hay una banda de título y basta con editarla para correrlo
+  // todo. Ojo: "Cant. Acompañantes" y "Nombres Acompañantes" empiezan
+  // igual, por eso la de la cuenta se pide además con "CANT".
+  let hRow = -1, colAsis = -1, colAcomp = -1, colEtiqueta = 0;
+  for (let r = 0; r < grid.length; r++) {
+    const fila = grid[r].map(v => String(v).trim().toUpperCase());
+
+    fila.forEach((t, i) => {
+      if (t.indexOf(RSVP_ETIQUETA_TOTAL) !== -1) colEtiqueta = i + 1;
+    });
+
+    if (hRow !== -1) continue;
+    let iA = -1, iC = -1;
+    fila.forEach((t, i) => {
+      if (t.indexOf('ASISTENCIA') !== -1) iA = i;
+      if (t.indexOf('CANT') !== -1 && t.indexOf('ACOMPA') !== -1) iC = i;
+    });
+    if (iA !== -1 && iC !== -1) { hRow = r + 1; colAsis = iA + 1; colAcomp = iC + 1; }
+  }
+
+  if (hRow === -1) {
+    throw new Error('no se encontraron las cabeceras "Asistencia" y ' +
+                    '"Cant. Acompañantes" en las primeras ' + scan + ' filas de RSVPs');
+  }
+
+  const letra = n => {
+    let r = '';
+    while (n > 0) { const m = (n - 1) % 26; r = String.fromCharCode(65 + m) + r; n = (n - m - 1) / 26; }
+    return r;
+  };
+
+  const S      = detectarSeparador();
+  const inicio = hRow + 1;                 // primera fila de datos
+  const lAsis  = letra(colAsis);
+  const lAcomp = letra(colAcomp);
+
+  // Se reutiliza la columna del recuadro si ya existe, para que
+  // ejecutarlo dos veces no lo vaya corriendo hacia la derecha.
+  const col = colEtiqueta || (ancho + 2);  // +2 deja un hueco con la tabla
+
+  // "✅ Sí" / "❌ No" es lo que escribe el formulario. Se compara con el
+  // final del texto para que siga valiendo si alguien quita el emoji o
+  // lo escribe en minúscula.
+  const rango  = '$' + lAsis + '$' + inicio + ':$' + lAsis;
+  const rangoA = '$' + lAcomp + '$' + inicio + ':$' + lAcomp;
+  const esSi   = 'REGEXMATCH(TO_TEXT(' + rango + ')' + S + '"(?i)s[íi]$")';
+  const suma   = '1+IFERROR(' + rangoA + '*1' + S + '0)';
+  const total  = '=SUMPRODUCT(ARRAYFORMULA(IF(' + esSi + S + suma + S + '0)))';
+
+  const filaEtiqueta = (hRow > 1) ? hRow - 1 : 1;
+  const filaValor    = (hRow > 1) ? hRow     : 2;
+
+  try {
+    const cE = sheet.getRange(filaEtiqueta, col);
+    const cV = sheet.getRange(filaValor, col);
+
+    cE.setValue('👥 ' + RSVP_ETIQUETA_TOTAL);
+    cE.setBackground('#3A4225').setFontColor('#C4A962')
+      .setFontSize(9).setFontWeight('bold')
+      .setHorizontalAlignment('center').setVerticalAlignment('middle');
+
+    cV.setFormula(total);
+    cV.setBackground('#3A4225').setFontColor('#F5F0E8')
+      .setFontSize(20).setFontWeight('bold')
+      .setHorizontalAlignment('center').setVerticalAlignment('middle');
+
+    sheet.setColumnWidth(col, 190);
+  } catch (err) {
+    throw new Error('no se pudo escribir el recuadro en la columna ' + letra(col) +
+                    ' (' + err.message + ')');
+  }
+
+  console.log('✅ Contador de personas en ' + letra(col) + filaValor +
+              ' — asistencia en ' + lAsis + ', acompañantes en ' + lAcomp +
+              ', datos desde la fila ' + inicio);
+}
 
 // ------------------------------------------------------------
 // El separador de argumentos depende de la configuración regional de
