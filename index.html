@@ -162,7 +162,7 @@
     </div>
     <p class="section-eyebrow reveal">9 de Enero, 2027</p>
     <h2 class="section-title reveal">Acompáñanos a celebrar<br/>nuestra boda</h2>
-    <p class="section-sub reveal">San José, Costa Rica</p>
+    <!-- <p class="section-sub reveal">San José, Costa Rica</p> -->
 
     <!-- Countdown -->
     <div class="countdown-table reveal" id="countdown">
@@ -399,7 +399,7 @@
         <div id="companions-list"></div>
       </div>
 
-      <!-- Transporte (solo aplica si asiste) -->
+      <!-- Transporte (solo aplica si asiste)
       <div class="form-conditional" id="transport-section">
         <label class="form-label" for="rsvp-transport">¿Requieres buseta para el transporte?</label>
         <select class="form-select" id="rsvp-transport">
@@ -408,7 +408,7 @@
           <option value="no">❌ No, llegaré por mi cuenta</option>
         </select>
         <p class="companion-num-label" style="margin-top:0.5rem">Cuenta a todos los de tu grupo, incluidos tus acompañantes.</p>
-      </div>
+      </div> -->
 
       <!-- Mensaje -->
       <div class="form-group">
@@ -855,22 +855,12 @@ function handleAttendChange() {
   const namesSection = document.getElementById('companions-section');
   const list         = document.getElementById('companions-list');
   const countSelect  = document.getElementById('rsvp-companions-count');
-  const transpSect   = document.getElementById('transport-section');
-  const transpSelect = document.getElementById('rsvp-transport');
+
 
   // Reset names section
   namesSection.classList.remove('visible');
   list.innerHTML = '';
 
-  // La buseta sólo tiene sentido si el invitado confirma. Al pasar a
-  // "No" se limpia el valor para no enviar un "Sí" fantasma si el
-  // invitado cambia de opinión después de haber respondido.
-  if (val === 'si') {
-    transpSect.classList.add('visible');
-  } else {
-    transpSect.classList.remove('visible');
-    transpSelect.value = '';
-  }
 
   if (val === 'si' && currentGuest && currentGuest.acompanantes > 0) {
     // Mostrar selector de cuántos acompañantes
@@ -919,15 +909,11 @@ async function submitRSVP() {
   const attend = document.getElementById('rsvp-attend').value;
   const phone  = document.getElementById('rsvp-phone').value.trim();
   const msg    = document.getElementById('rsvp-message').value.trim();
-  const transp = document.getElementById('rsvp-transport').value;
   const nombre = currentGuest ? currentGuest.nombre : '—';
 
   if (!attend) { alert('Por favor indica si asistirás.'); return; }
   if (!phone)  { alert('Por favor ingresa tu número de WhatsApp.'); return; }
-  if (attend === 'si' && !transp) {
-    alert('Por favor indica si requieres buseta para el transporte.');
-    return;
-  }
+
 
   // Recolectar acompañantes
   const companions = [];
@@ -950,7 +936,7 @@ async function submitRSVP() {
     cant_acompanantes: attend === 'si' ? countVal : 0,
     acompanantes:     companions.join(', '),
     mensaje:          msg,
-    buseta:           attend === 'si' ? (transp === 'si' ? '🚌 Sí' : '❌ No') : '—',
+    buseta:            '',
     timestamp:        new Date().toISOString()
   };
 
